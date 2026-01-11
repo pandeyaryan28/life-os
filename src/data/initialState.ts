@@ -1,0 +1,86 @@
+import type { GameState } from '../types';
+
+export const INITIAL_STATE: GameState = {
+    version: '1.3.0',
+    player: {
+        name: 'Player',
+        level: 1,
+        xp: 0,
+        maxXp: 100,
+        rank: 'Awakened',
+        stats: {
+            physical: 10,
+            mental: 10,
+            discipline: 10,
+            knowledge: 10,
+            creativity: 10,
+            social: 10,
+            wealth: 10,
+            focus: 10,
+            energy: 100,
+        },
+        credits: 0,
+        streak: 0,
+        lastLogin: new Date().toISOString(),
+        stageId: 'awakened',
+        stageStartedAt: new Date().toISOString(),
+        consistencyScore: 100,
+        focusMode: {
+            isActive: false,
+            dailyTotalSeconds: 0,
+        },
+        skills: [],
+        traits: [],
+    },
+    quests: [
+        {
+            id: 'tutorial-1',
+            title: 'System Initialization',
+            description: 'Complete the setup of your Life Operating System.',
+            type: 'MAIN',
+            status: 'ACTIVE',
+            difficulty: 'E',
+            rewards: {
+                xp: 50,
+                credits: 10,
+                stats: { discipline: 1 },
+            },
+            subtasks: [
+                { id: 't1', text: 'Review your stats', completed: false },
+                { id: 't2', text: 'Accept your first Daily Quest', completed: false },
+            ],
+        },
+        {
+            id: 'daily-1',
+            title: 'Morning Routine',
+            description: 'Drink water and stretch immediately after waking up.',
+            type: 'DAILY',
+            status: 'ACTIVE',
+            difficulty: 'E',
+            rewards: {
+                xp: 10,
+                stats: { physical: 1 },
+            },
+            streak: 0,
+            completedCount: 0,
+        },
+    ],
+    goals: [],
+    expenses: [],
+    expenseHistory: [],
+    manualAdjustments: [],
+    logs: [
+        {
+            id: 'log-init',
+            timestamp: new Date().toISOString(),
+            message: 'System Initialized. Welcome to LIFE OS v1.3.0.',
+            type: 'SYSTEM',
+        },
+    ],
+    settings: {
+        autoRenewDailies: true,
+        autoFailureDetection: true,
+        discoveryMode: false,
+        statDecayEnabled: false,
+    },
+};

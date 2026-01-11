@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --system-blue: #00aaff;
+  --system-dark: #0a0a0a;
+  --system-panel: #111111;
+  --system-border: #333333;
+  --system-text: #e0e0e0;
+  --system-gold: #ffd700;
+  --system-danger: #ff4444;
+}
+
+body {
+  background-color: var(--system-dark);
+  color: var(--system-text);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden; /* Prevent scrolling, app-like feel */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--system-dark); 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--system-border); 
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--system-blue); 
+}
+
+/* System Utilities */
+.system-border {
+  border: 1px solid var(--system-border);
+}
+
+.system-panel {
+  background-color: var(--system-panel);
+  border: 1px solid var(--system-border);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+}
+
+.border-glow {
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.2);
+}
