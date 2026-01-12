@@ -1,143 +1,227 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { GameState, LogEntry, Stats, Quest, Notification, Expense, Goal, ManualAdjustment } from '../types';
+import type { GameState, Stats, Quest, Notification, Expense, Goal, ManualAdjustment, PlayerProfile, LogEntry } from '../types';
 import { INITIAL_STATE } from '../data/initialState';
 import { STAGES } from '../data/stages';
+import { useAuth } from '../context/AuthContext';
+import * as dbService from '../firebase/db';
 
-const STORAGE_KEY = 'life-os-save-v1.3.1';
+const OLD_STORAGE_KEY = 'life-os-save-v1.3.1';
 
 export const useGameEngine = () => {
-    const [gameState, setGameState] = useState<GameState>(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) {
-            const v13Saved = localStorage.getItem('life-os-save-v1.3');
-            if (v13Saved) {
-                const parsed = JSON.parse(v13Saved);
-                return {
-                    ...parsed,
-                    version: '1.3.1'
-                };
-            }
-            const v12Saved = localStorage.getItem('life-os-save-v1.2');
-            if (v12Saved) {
-                const parsed = JSON.parse(v12Saved);
-                return {
-                    ...INITIAL_STATE,
-                    ...parsed,
-                    version: '1.3.1',
-                    player: {
-                        ...INITIAL_STATE.player,
-                        ...parsed.player,
-                        credits: parsed.player.coins || 0
-                    },
-                    goals: parsed.goals || [],
-                    expenses: parsed.expenses || [],
-                    expenseHistory: parsed.expenseHistory || [],
-                    manualAdjustments: parsed.manualAdjustments || [],
-                    settings: { ...INITIAL_STATE.settings, ...(parsed.settings || {}) }
-                };
-            }
-            return INITIAL_STATE;
-        }
-        return JSON.parse(saved);
-    });
-
+    const { user } = useAuth();
+    const [gameState, setGameState] = useState<GameState>({ ...INITIAL_STATE, version: '1.4.0' });
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [isMigrationPending, setIsMigrationPending] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(true);
 
-    // Persistence
+    // Load local storage if exists for migration check
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
-    }, [gameState]);
+        if (!user) return;
+
+        const checkMigration = async () => {
+            const hasLocalData = localStorage.getItem(OLD_STORAGE_KEY) ||
+                localStorage.getItem('life-os-save-v1.3') ||
+                localStorage.getItem('life-os-save-v1.2');
+
+            if (hasLocalData) {
+                setIsMigrationPending(true);
+            }
+        };
+
+        checkMigration();
+    }, [user]);
+
+    // Firestore Integration
+    useEffect(() => {
+        if (!user) return;
+
+        // Initialize user profile if new
+        dbService.initializeUserProfile(user.uid, INITIAL_STATE.player);
+
+        // Sync Profile
+        const unsubProfile = dbService.syncDocument<PlayerProfile>(user.uid, "profile", "data", (profile) => {
+            setGameState(prev => ({ ...prev, player: { ...prev.player, ...profile } }));
+            setIsSyncing(false);
+        });
+
+        // Sync Stats
+        const unsubStats = dbService.syncDocument<Stats>(user.uid, "stats", "current", (stats) => {
+            setGameState(prev => ({ ...prev, player: { ...prev.player, stats } }));
+        });
+
+        // Sync Quests
+        const unsubQuests = dbService.syncCollection<Quest>(user.uid, "quests", (quests) => {
+            setGameState(prev => ({ ...prev, quests }));
+        });
+
+        // Sync Goals
+        const unsubGoals = dbService.syncCollection<Goal>(user.uid, "goals", (goals) => {
+            setGameState(prev => ({ ...prev, goals }));
+        });
+
+        // Sync Expenses
+        const unsubExpenses = dbService.syncCollection<Expense>(user.uid, "economy", (expenses) => {
+            setGameState(prev => ({ ...prev, expenses }));
+        });
+
+        // Sync Ledger
+        const unsubLedger = dbService.syncCollection<Expense>(user.uid, "ledger", (expenseHistory) => {
+            setGameState(prev => ({ ...prev, expenseHistory }));
+        });
+
+        // Sync Settings
+        const unsubSettings = dbService.syncDocument<GameState['settings']>(user.uid, "system", "settings", (settings) => {
+            if (settings) {
+                setGameState(prev => ({ ...prev, settings: { ...prev.settings, ...settings } }));
+            }
+        });
+
+        return () => {
+            unsubProfile();
+            unsubStats();
+            unsubQuests();
+            unsubGoals();
+            unsubExpenses();
+            unsubLedger();
+            unsubSettings();
+        };
+    }, [user]);
+
+    const performMigration = async () => {
+        if (!user) return;
+
+        const localData = localStorage.getItem(OLD_STORAGE_KEY) ||
+            localStorage.getItem('life-os-save-v1.3') ||
+            localStorage.getItem('life-os-save-v1.2');
+
+        if (localData) {
+            const parsed = JSON.parse(localData);
+            const legacyState: GameState = {
+                ...INITIAL_STATE,
+                ...parsed,
+                player: {
+                    ...INITIAL_STATE.player,
+                    ...parsed.player,
+                    credits: parsed.player.credits || parsed.player.coins || 0
+                }
+            };
+
+            await dbService.migrateLocalStorageToFirestore(user.uid, legacyState);
+
+            // Clear all legacy storage
+            localStorage.removeItem(OLD_STORAGE_KEY);
+            localStorage.removeItem('life-os-save-v1.3');
+            localStorage.removeItem('life-os-save-v1.2');
+            localStorage.removeItem('life-os-save-v1.1');
+
+            setIsMigrationPending(false);
+            addNotification('MIGRATION COMPLETE: System data synchronized to cloud.', 'SUCCESS');
+        }
+    };
+
+    const cancelMigration = () => {
+        localStorage.removeItem(OLD_STORAGE_KEY);
+        localStorage.removeItem('life-os-save-v1.3');
+        localStorage.removeItem('life-os-save-v1.2');
+        setIsMigrationPending(false);
+        addNotification('Migration bypassed. Local data cleared.', 'WARNING');
+    };
+
+    // Delete Old Persistence Effect
 
     // System Time Engine (Daily Resets & Recurring Expenses)
     useEffect(() => {
-        const checkSystemResets = () => {
+        if (!user || isSyncing) return;
+
+        const checkSystemResets = async () => {
             const now = new Date();
             const lastLogin = new Date(gameState.player.lastLogin);
 
-            // Check if day has changed
-            if (now.toDateString() !== lastLogin.toDateString()) {
-                setGameState(prev => {
-                    const updatedQuests = prev.quests.map(q => {
-                        if (q.type === 'DAILY') {
-                            // If quest was NOT completed today, break streak (unless penalties disabled)
-                            const wasCompleted = q.status === 'COMPLETED';
-                            const newStreak = wasCompleted ? (q.streak || 0) : 0;
+            // Use UTC dates for comparison
+            const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+            const lastLoginUTC = new Date(Date.UTC(lastLogin.getUTCFullYear(), lastLogin.getUTCMonth(), lastLogin.getUTCDate()));
 
-                            // Reset DAILY status
-                            return {
-                                ...q,
-                                status: 'ACTIVE' as const,
-                                streak: newStreak,
-                                lastCompletedAt: wasCompleted ? q.lastCompletedAt : prev.player.lastLogin
-                            };
-                        }
-                        return q;
-                    });
+            if (todayUTC.getTime() > lastLoginUTC.getTime()) {
+                // New day detected
+                const batchUpdates: Promise<any>[] = [];
 
-                    // Update Last Login
-                    return {
-                        ...prev,
-                        quests: updatedQuests,
-                        player: {
-                            ...prev.player,
-                            lastLogin: now.toISOString()
-                        }
-                    };
+                // Reset Daily Quests
+                gameState.quests.forEach(q => {
+                    if (q.type === 'DAILY') {
+                        const wasCompleted = q.status === 'COMPLETED';
+                        const newStreak = wasCompleted ? (q.streak || 0) : 0;
+                        batchUpdates.push(dbService.upsertDocument(user.uid, "quests", {
+                            ...q,
+                            status: 'ACTIVE',
+                            streak: newStreak,
+                            lastCompletedAt: wasCompleted ? q.lastCompletedAt : gameState.player.lastLogin
+                        }));
+                    }
                 });
 
-                addLog('New day detected. Daily quests reset.', 'SYSTEM');
-                addNotification('NEW DAY DETECTED: Daily Quests Reset', 'INFO');
+                // Update Profile Last Login
+                const { stats: _, ...pLat } = gameState.player;
+                batchUpdates.push(dbService.upsertDocument(user.uid, "profile", {
+                    ...pLat,
+                    id: 'data',
+                    lastLogin: now.toISOString()
+                }));
+
+                await Promise.all(batchUpdates);
+
+                addLog('Neural Synchronization: Daily cycles recalibrated.', 'SYSTEM');
+                addNotification('NEW CYCLE DETECTED: Dailies Reset', 'INFO');
             }
 
             // Recurring Expenses Logic
             processRecurringExpenses();
         };
 
-        const processRecurringExpenses = () => {
+        const processRecurringExpenses = async () => {
             const now = new Date();
-            setGameState(prev => {
-                let currentCredits = prev.player.credits;
-                const newHistory = [...prev.expenseHistory];
-                const updatedExpenses = prev.expenses.map(exp => {
-                    if (exp.type === 'RECURRING' && exp.frequency) {
-                        const lastProcessed = exp.lastProcessed ? new Date(exp.lastProcessed) : new Date(exp.timestamp);
-                        let shouldProcess = false;
+            let currentCredits = gameState.player.credits;
+            const batchUpdates: Promise<any>[] = [];
 
-                        if (exp.frequency === 'DAILY') {
-                            shouldProcess = now.getTime() - lastProcessed.getTime() >= 24 * 60 * 60 * 1000;
-                        } else if (exp.frequency === 'WEEKLY') {
-                            shouldProcess = now.getTime() - lastProcessed.getTime() >= 7 * 24 * 60 * 60 * 1000;
-                        } else if (exp.frequency === 'MONTHLY') {
-                            shouldProcess = now.getMonth() !== lastProcessed.getMonth() || now.getFullYear() !== lastProcessed.getFullYear();
-                        }
+            for (const exp of gameState.expenses) {
+                if (exp.type === 'RECURRING' && exp.frequency) {
+                    const lastProcessed = exp.lastProcessed ? new Date(exp.lastProcessed) : new Date(exp.timestamp);
+                    let shouldProcess = false;
 
-                        if (shouldProcess) {
-                            currentCredits -= exp.amount;
-                            const historyEntry: Expense = { ...exp, id: `${exp.id}-${now.getTime()}`, timestamp: now.toISOString() };
-                            newHistory.unshift(historyEntry);
-                            addLog(`Recurring expense deducted: ${exp.name} (-${exp.amount} Credits)`, 'WARNING');
-                            return { ...exp, lastProcessed: now.toISOString() };
-                        }
+                    if (exp.frequency === 'DAILY') {
+                        shouldProcess = now.getTime() - lastProcessed.getTime() >= 24 * 60 * 60 * 1000;
+                    } else if (exp.frequency === 'WEEKLY') {
+                        shouldProcess = now.getTime() - lastProcessed.getTime() >= 7 * 24 * 60 * 60 * 1000;
+                    } else if (exp.frequency === 'MONTHLY') {
+                        shouldProcess = now.getUTCMonth() !== lastProcessed.getUTCMonth() || now.getUTCFullYear() !== lastProcessed.getUTCFullYear();
                     }
-                    return exp;
-                });
 
-                if (currentCredits !== prev.player.credits) {
-                    return {
-                        ...prev,
-                        player: { ...prev.player, credits: currentCredits },
-                        expenses: updatedExpenses,
-                        expenseHistory: newHistory.slice(0, 100)
-                    };
+                    if (shouldProcess) {
+                        currentCredits -= exp.amount;
+                        const historyEntry: Expense = { ...exp, id: `${exp.id}-${now.getTime()}`, timestamp: now.toISOString() };
+
+                        batchUpdates.push(dbService.upsertDocument(user.uid, "ledger", historyEntry));
+                        batchUpdates.push(dbService.upsertDocument(user.uid, "economy", { ...exp, lastProcessed: now.toISOString() }));
+
+                        addLog(`Automated Deduction: ${exp.name} (-${exp.amount} Credits)`, 'WARNING');
+                    }
                 }
-                return prev;
-            });
+            }
+
+            if (batchUpdates.length > 0) {
+                const { stats: _, ...pLat } = gameState.player;
+                batchUpdates.push(dbService.upsertDocument(user.uid, "profile", {
+                    ...pLat,
+                    id: 'data',
+                    credits: currentCredits
+                }));
+                await Promise.all(batchUpdates);
+            }
         };
 
-        const timer = setInterval(checkSystemResets, 60000); // Check every minute
-        checkSystemResets(); // Initial check
+        const timer = setInterval(checkSystemResets, 60000);
+        checkSystemResets();
         return () => clearInterval(timer);
-    }, [gameState.player.lastLogin]);
+    }, [user, isSyncing, gameState.player, gameState.quests, gameState.expenses]);
 
     // Focus Mode Timer
     useEffect(() => {
@@ -168,144 +252,138 @@ export const useGameEngine = () => {
         }, 3000);
     }, []);
 
-    const addLog = useCallback((message: string, type: LogEntry['type'] = 'INFO') => {
+    const addLog = useCallback(async (message: string, type: LogEntry['type'] = 'INFO') => {
+        if (!user) return;
         const newLog: LogEntry = {
             id: Date.now().toString(),
             timestamp: new Date().toISOString(),
             message,
             type,
         };
-        setGameState(prev => ({
-            ...prev,
-            logs: [newLog, ...prev.logs].slice(0, 50),
-        }));
-    }, []);
+        await dbService.upsertDocument(user.uid, "ledger", newLog);
+    }, [user]);
 
-    const updateSettings = useCallback((newSettings: Partial<GameState['settings']>) => {
-        setGameState(prev => ({
-            ...prev,
-            settings: { ...prev.settings, ...newSettings }
-        }));
-        addNotification('System settings updated.', 'INFO');
-    }, [addNotification]);
-
-    const toggleFocusMode = useCallback(() => {
-        setGameState(prev => {
-            const isActive = !prev.player.focusMode.isActive;
-            addNotification(isActive ? 'FOCUS MODE ACTIVATED' : 'FOCUS MODE DEACTIVATED', isActive ? 'INFO' : 'SUCCESS');
-            return {
-                ...prev,
-                player: {
-                    ...prev.player,
-                    focusMode: {
-                        ...prev.player.focusMode,
-                        isActive,
-                        sessionStartedAt: isActive ? new Date().toISOString() : undefined
-                    }
-                }
-            };
+    const updateSettings = useCallback(async (newSettings: Partial<GameState['settings']>) => {
+        if (!user) return;
+        await dbService.upsertDocument(user.uid, "system", {
+            id: 'settings',
+            ...gameState.settings,
+            ...newSettings
         });
-    }, [addNotification]);
+        addNotification('System settings updated.', 'INFO');
+    }, [user, gameState.settings, addNotification]);
 
-    const advanceStage = useCallback((stageId: string) => {
+    const toggleFocusMode = useCallback(async () => {
+        if (!user) return;
+        const isActive = !gameState.player.focusMode.isActive;
+        const updatedFocusMode = {
+            ...gameState.player.focusMode,
+            isActive,
+            sessionStartedAt: isActive ? new Date().toISOString() : undefined
+        };
+        const { stats: _, ...pData } = gameState.player;
+        await dbService.upsertDocument(user.uid, "profile", {
+            ...pData,
+            id: 'data',
+            focusMode: updatedFocusMode
+        });
+        addNotification(isActive ? 'FOCUS MODE ACTIVATED' : 'FOCUS MODE DEACTIVATED', isActive ? 'INFO' : 'SUCCESS');
+    }, [user, gameState.player, addNotification]);
+
+    const advanceStage = useCallback(async (stageId: string) => {
+        if (!user) return;
         const stage = STAGES.find(s => s.id === stageId);
         if (!stage) return;
 
-        setGameState(prev => {
-            addNotification(`STAGE EVOLUTION: ${stage.name}`, 'SUCCESS');
-            addLog(`Player Stage updated to: ${stage.name}`, 'SUCCESS');
-            return {
-                ...prev,
-                player: {
-                    ...prev.player,
-                    stageId,
-                    stageStartedAt: new Date().toISOString()
-                }
-            };
+        const { stats: _, ...pData } = gameState.player;
+        await dbService.upsertDocument(user.uid, "profile", {
+            ...pData,
+            id: 'data',
+            stageId,
+            stageStartedAt: new Date().toISOString()
         });
-    }, [addNotification, addLog]);
+        addNotification(`STAGE EVOLUTION: ${stage.name}`, 'SUCCESS');
+        addLog(`Player Stage updated to: ${stage.name}`, 'SUCCESS');
+    }, [user, gameState.player, addNotification, addLog]);
 
-    const addQuest = useCallback((questData: Omit<Quest, 'id' | 'status'>) => {
+    const addQuest = useCallback(async (questData: Omit<Quest, 'id' | 'status'>) => {
+        if (!user) return;
         const newQuest: Quest = {
             ...questData,
             id: Date.now().toString(),
             status: 'ACTIVE',
         };
-        setGameState(prev => {
-            const newQuests = [...prev.quests, newQuest];
-            // If linked to a goal, update goal
-            const newGoals = prev.goals.map(g => {
-                if (g.id === newQuest.goalId) {
-                    return { ...g, questIds: [...g.questIds, newQuest.id] };
-                }
-                return g;
-            });
-            return {
-                ...prev,
-                quests: newQuests,
-                goals: newGoals
-            };
-        });
+
+        await dbService.upsertDocument(user.uid, "quests", newQuest);
+
+        if (newQuest.goalId) {
+            const goal = gameState.goals.find(g => g.id === newQuest.goalId);
+            if (goal) {
+                await dbService.upsertDocument(user.uid, "goals", {
+                    ...goal,
+                    questIds: [...goal.questIds, newQuest.id]
+                });
+            }
+        }
+
         addNotification(`QUEST CREATED: ${newQuest.title}`, 'INFO');
         addLog(`Quest Created: ${newQuest.title}`, 'INFO');
-    }, [addNotification, addLog]);
+    }, [user, gameState.goals, addNotification, addLog]);
 
-    const calculateConsistency = useCallback(() => {
-        setGameState(prev => {
-            const last30DaysQuests = prev.quests.filter(q => {
-                const createdDate = new Date(parseInt(q.id));
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                return createdDate > thirtyDaysAgo && (q.status === 'COMPLETED' || q.status === 'FAILED');
-            });
-
-            if (last30DaysQuests.length === 0) return prev;
-
-            const completed = last30DaysQuests.filter(q => q.status === 'COMPLETED').length;
-            const newScore = Math.round((completed / last30DaysQuests.length) * 100);
-
-            return {
-                ...prev,
-                player: { ...prev.player, consistencyScore: newScore }
-            };
+    const calculateConsistency = useCallback(async () => {
+        if (!user) return;
+        const last30DaysQuests = gameState.quests.filter(q => {
+            const createdDate = new Date(parseInt(q.id));
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            return createdDate > thirtyDaysAgo && (q.status === 'COMPLETED' || q.status === 'FAILED');
         });
-    }, []);
 
-    const updateStats = useCallback((statsDelta: Partial<Stats>) => {
-        setGameState(prev => {
-            const newStats = { ...prev.player.stats };
-            (Object.entries(statsDelta) as [keyof Stats, number][]).forEach(([key, value]) => {
-                if (value) {
-                    newStats[key] = (newStats[key] || 0) + value;
-                }
-            });
-            return {
-                ...prev,
-                player: { ...prev.player, stats: newStats },
-            };
+        if (last30DaysQuests.length === 0) return;
+
+        const completed = last30DaysQuests.filter(q => q.status === 'COMPLETED').length;
+        const newScore = Math.round((completed / last30DaysQuests.length) * 100);
+
+        await dbService.upsertDocument(user.uid, "profile", {
+            ...gameState.player,
+            consistencyScore: newScore
         });
-    }, []);
+    }, [user, gameState.quests, gameState.player]);
 
-    const gainXp = useCallback((amount: number) => {
-        let leveledUp = false;
-        let newLevel = 0;
-
-        setGameState(prev => {
-            let { xp, level, maxXp } = prev.player;
-            xp += amount;
-
-            while (xp >= maxXp) {
-                xp -= maxXp;
-                level++;
-                maxXp = Math.floor(maxXp * 1.5);
-                leveledUp = true;
-                newLevel = level;
+    const updateStats = useCallback(async (statsDelta: Partial<Stats>) => {
+        if (!user) return;
+        const newStats = { ...gameState.player.stats };
+        (Object.entries(statsDelta) as [keyof Stats, number][]).forEach(([key, value]) => {
+            if (value) {
+                newStats[key] = (newStats[key] || 0) + value;
             }
+        });
+        const { stats: _, ...profileData } = gameState.player;
+        await dbService.upsertDocument(user.uid, "profile", {
+            ...profileData,
+            id: 'data',
+        });
+        await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
+    }, [user, gameState.player]);
 
-            return {
-                ...prev,
-                player: { ...prev.player, xp, level, maxXp },
-            };
+    const gainXp = useCallback(async (amount: number) => {
+        if (!user) return;
+        let { xp, level, maxXp } = gameState.player;
+        xp += amount;
+        let leveledUp = false;
+
+        while (xp >= maxXp) {
+            xp -= maxXp;
+            level++;
+            maxXp = Math.floor(maxXp * 1.5);
+            leveledUp = true;
+        }
+
+        await dbService.upsertDocument(user.uid, "profile", {
+            ...gameState.player,
+            xp,
+            level,
+            maxXp
         });
 
         if (amount > 0) {
@@ -314,263 +392,232 @@ export const useGameEngine = () => {
         }
 
         if (leveledUp) {
-            addNotification(`LEVEL UP: REACHED LEVEL ${newLevel}`, 'SUCCESS');
-            addLog(`LEVEL UP! You are now Level ${newLevel}`, 'SUCCESS');
+            addNotification(`LEVEL UP: REACHED LEVEL ${level}`, 'SUCCESS');
+            addLog(`LEVEL UP! You are now Level ${level}`, 'SUCCESS');
         }
-    }, [addNotification, addLog]);
+    }, [user, gameState.player, addNotification, addLog]);
 
-    const completeQuest = useCallback((questId: string) => {
-        setGameState(prev => {
-            const questIndex = prev.quests.findIndex(q => q.id === questId);
-            if (questIndex === -1) return prev;
-
-            const quest = prev.quests[questIndex];
-            if (quest.status !== 'ACTIVE') return prev;
-
-            const newQuests = [...prev.quests];
-            const isDaily = quest.type === 'DAILY';
-
-            newQuests[questIndex] = {
-                ...quest,
-                status: 'COMPLETED',
-                streak: isDaily ? (quest.streak || 0) + 1 : quest.streak,
-                lastCompletedAt: new Date().toISOString(),
-                completedCount: (quest.completedCount || 0) + 1
-            };
-
-            const isFatigued = prev.player.stats.energy < 20;
-            const multiplier = isFatigued ? 0.5 : 1.0;
-
-            const { credits, stats } = quest.rewards;
-
-            const newStats = { ...prev.player.stats };
-            if (stats) {
-                (Object.entries(stats) as [keyof Stats, number][]).forEach(([key, value]) => {
-                    if (value) newStats[key] = (newStats[key] || 0) + (value * multiplier);
-                });
-            }
-
-            if (isFatigued) {
-                addNotification('FATIGUE ACTIVE: Rewards reduced by 50%', 'WARNING');
-            }
-
-            return {
-                ...prev,
-                quests: newQuests,
-                player: {
-                    ...prev.player,
-                    credits: prev.player.credits + ((credits || 0) * multiplier),
-                    stats: newStats,
-                },
-            };
-        });
-
+    const completeQuest = useCallback(async (questId: string) => {
+        if (!user) return;
         const quest = gameState.quests.find(q => q.id === questId);
-        if (quest) {
-            const isFatigued = gameState.player.stats.energy < 20;
-            gainXp(quest.rewards.xp * (isFatigued ? 0.5 : 1.0));
-            addNotification(`QUEST COMPLETED: ${quest.title}`, 'SUCCESS');
-            addLog(`Quest Completed: ${quest.title}`, 'SUCCESS');
-            calculateConsistency();
+        if (!quest || quest.status !== 'ACTIVE') return;
+
+        const isDaily = quest.type === 'DAILY';
+        const updatedQuest: Quest = {
+            ...quest,
+            status: 'COMPLETED',
+            streak: isDaily ? (quest.streak || 0) + 1 : quest.streak,
+            lastCompletedAt: new Date().toISOString(),
+            completedCount: (quest.completedCount || 0) + 1
+        };
+
+        const isFatigued = gameState.player.stats.energy < 20;
+        const multiplier = isFatigued ? 0.5 : 1.0;
+        const { credits, stats } = quest.rewards;
+
+        const newStats = { ...gameState.player.stats };
+        if (stats) {
+            (Object.entries(stats) as [keyof Stats, number][]).forEach(([key, value]) => {
+                if (value) newStats[key] = (newStats[key] || 0) + (value * multiplier);
+            });
         }
-    }, [gameState.quests, gameState.player.stats.energy, gainXp, addNotification, addLog, calculateConsistency]);
 
-    const failQuest = useCallback((questId: string) => {
-        setGameState(prev => {
-            const questIndex = prev.quests.findIndex(q => q.id === questId);
-            if (questIndex === -1) return prev;
+        const newCredits = gameState.player.credits + ((credits || 0) * multiplier);
 
-            const quest = prev.quests[questIndex];
-            const newQuests = [...prev.quests];
-            newQuests[questIndex] = { ...quest, status: 'FAILED' };
+        // Update Quest
+        await dbService.upsertDocument(user.uid, "quests", updatedQuest);
 
-            const newStats = { ...prev.player.stats };
-            if (quest.penalty?.stats) {
-                (Object.entries(quest.penalty.stats) as [keyof Stats, number][]).forEach(([key, value]) => {
-                    if (value) newStats[key] = Math.max(0, (newStats[key] || 0) - value);
-                });
-            }
-
-            return {
-                ...prev,
-                quests: newQuests,
-                player: {
-                    ...prev.player,
-                    stats: newStats,
-                    credits: Math.max(0, prev.player.credits - (quest.penalty?.credits || 0)),
-                },
-            };
+        // Update Profile & Stats
+        const { stats: _, ...profileData } = gameState.player;
+        await dbService.upsertDocument(user.uid, "profile", {
+            ...profileData,
+            credits: newCredits
         });
+        await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
 
-        const quest = gameState.quests.find(q => q.id === questId);
-        if (quest) {
-            addNotification(`QUEST FAILED: ${quest.title}`, 'FAILURE');
-            addLog(`Quest Failed: ${quest.title}`, 'ERROR');
-            calculateConsistency();
+        if (isFatigued) {
+            addNotification('FATIGUE ACTIVE: Rewards reduced by 50%', 'WARNING');
         }
-    }, [gameState.quests, addNotification, addLog, calculateConsistency]);
+
+        gainXp(quest.rewards.xp * multiplier);
+        addNotification(`QUEST COMPLETED: ${quest.title}`, 'SUCCESS');
+        addLog(`Quest Completed: ${quest.title}`, 'SUCCESS');
+        calculateConsistency();
+    }, [user, gameState.quests, gameState.player, gainXp, addNotification, addLog, calculateConsistency]);
+
+    const failQuest = useCallback(async (questId: string) => {
+        if (!user) return;
+        const quest = gameState.quests.find(q => q.id === questId);
+        if (!quest) return;
+
+        const updatedQuest: Quest = { ...quest, status: 'FAILED' };
+        const newStats = { ...gameState.player.stats };
+        if (quest.penalty?.stats) {
+            (Object.entries(quest.penalty.stats) as [keyof Stats, number][]).forEach(([key, value]) => {
+                if (value) newStats[key] = Math.max(0, (newStats[key] || 0) - value);
+            });
+        }
+
+        const newCredits = Math.max(0, gameState.player.credits - (quest.penalty?.credits || 0));
+
+        const { stats: _, ...profileData } = gameState.player;
+        await dbService.upsertDocument(user.uid, "quests", updatedQuest);
+        await dbService.upsertDocument(user.uid, "profile", {
+            ...profileData,
+            credits: newCredits
+        });
+        await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
+
+        addNotification(`QUEST FAILED: ${quest.title}`, 'FAILURE');
+        addLog(`Quest Failed: ${quest.title}`, 'ERROR');
+        calculateConsistency();
+    }, [user, gameState.quests, gameState.player, addNotification, addLog, calculateConsistency]);
 
     // v1.3 Economy Module
-    const addExpense = useCallback((expenseData: Omit<Expense, 'id' | 'timestamp'>) => {
+    const addExpense = useCallback(async (expenseData: Omit<Expense, 'id' | 'timestamp'>) => {
+        if (!user) return;
         const id = Date.now().toString();
         const timestamp = new Date().toISOString();
         const newExpense: Expense = { ...expenseData, id, timestamp };
 
-        setGameState(prev => {
-            const newCredits = prev.player.credits - newExpense.amount;
-            addLog(`Expense Logged: ${newExpense.name} (-${newExpense.amount} Credits)`, 'WARNING');
-            addNotification(`EXPENSE LOGGED: -${newExpense.amount} Credits`, 'INFO');
+        const newCredits = gameState.player.credits - newExpense.amount;
 
-            return {
-                ...prev,
-                player: { ...prev.player, credits: newCredits },
-                expenses: newExpense.type === 'RECURRING' ? [...prev.expenses, newExpense] : prev.expenses,
-                expenseHistory: [newExpense, ...prev.expenseHistory].slice(0, 100)
-            };
+        // Update Profile
+        await dbService.upsertDocument(user.uid, "profile", {
+            ...gameState.player,
+            credits: newCredits
         });
-    }, [addLog, addNotification]);
+
+        // Add to Economy (if recurring)
+        if (newExpense.type === 'RECURRING') {
+            await dbService.upsertDocument(user.uid, "economy", newExpense);
+        }
+
+        // Add to Ledger
+        await dbService.upsertDocument(user.uid, "ledger", newExpense);
+
+        addLog(`Expense Logged: ${newExpense.name} (-${newExpense.amount} Credits)`, 'WARNING');
+        addNotification(`EXPENSE LOGGED: -${newExpense.amount} Credits`, 'INFO');
+    }, [user, gameState.player, addLog, addNotification]);
 
     // v1.3 Manual Adjustment
-    const applyManualAdjustment = useCallback((adj: Omit<ManualAdjustment, 'id' | 'timestamp'>) => {
+    const applyManualAdjustment = useCallback(async (adj: Omit<ManualAdjustment, 'id' | 'timestamp'>) => {
+        if (!user) return;
         const id = Date.now().toString();
         const timestamp = new Date().toISOString();
         const newAdj: ManualAdjustment = { ...adj, id, timestamp };
 
-        setGameState(prev => {
-            let newPlayer = { ...prev.player };
-            if (adj.type === 'XP') {
-                newPlayer.xp = Math.max(0, newPlayer.xp + (adj.value as number));
-            } else if (adj.type === 'CREDITS') {
-                newPlayer.credits = Math.max(0, newPlayer.credits + (adj.value as number));
-            } else if (adj.type === 'STATS') {
-                const statsDelta = adj.value as Partial<Stats>;
-                Object.entries(statsDelta).forEach(([key, val]) => {
-                    const k = key as keyof Stats;
-                    newPlayer.stats[k] = Math.max(0, newPlayer.stats[k] + (val || 0));
-                });
-            }
+        let newPlayer = { ...gameState.player };
+        if (adj.type === 'XP') {
+            newPlayer.xp = Math.max(0, newPlayer.xp + (adj.value as number));
+        } else if (adj.type === 'CREDITS') {
+            newPlayer.credits = Math.max(0, newPlayer.credits + (adj.value as number));
+        } else if (adj.type === 'STATS') {
+            const statsDelta = adj.value as Partial<Stats>;
+            Object.entries(statsDelta).forEach(([key, val]) => {
+                const k = key as keyof Stats;
+                newPlayer.stats[k] = Math.max(0, newPlayer.stats[k] + (val || 0));
+            });
+        }
 
-            addLog(`Manual Adjustment (${adj.type}): ${adj.reason}`, 'WARNING');
-            addNotification(`ADJUSTMENT APPLIED: ${adj.type}`, 'WARNING');
+        const { stats: _, ...pData } = newPlayer;
+        await dbService.upsertDocument(user.uid, "profile", pData);
+        await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newPlayer.stats });
+        await dbService.upsertDocument(user.uid, "system", newAdj);
 
-            return {
-                ...prev,
-                player: newPlayer,
-                manualAdjustments: [newAdj, ...prev.manualAdjustments]
-            };
-        });
-    }, [addLog, addNotification]);
+        addLog(`Manual Adjustment (${adj.type}): ${adj.reason}`, 'WARNING');
+        addNotification(`ADJUSTMENT APPLIED: ${adj.type}`, 'WARNING');
+    }, [user, gameState.player, addLog, addNotification]);
 
-    const addGoal = useCallback((goalData: Omit<Goal, 'id' | 'questIds' | 'status'>) => {
+    const addGoal = useCallback(async (goalData: Omit<Goal, 'id' | 'questIds' | 'status'>) => {
+        if (!user) return;
         const newGoal: Goal = {
             ...goalData,
             id: Date.now().toString(),
             status: 'NOT_STARTED',
             questIds: []
         };
-        setGameState(prev => ({
-            ...prev,
-            goals: [...prev.goals, newGoal]
-        }));
+        await dbService.upsertDocument(user.uid, "goals", newGoal);
         addNotification(`GOAL CREATED: ${newGoal.name}`, 'SUCCESS');
-    }, [addNotification]);
+    }, [user, addNotification]);
 
     // v1.3.1 Goals-Quest Linking
-    const linkQuestToGoal = useCallback((questId: string, goalId: string) => {
-        setGameState(prev => {
-            const updatedQuests = prev.quests.map(q => {
-                if (q.id === questId) {
-                    return { ...q, goalId };
-                }
-                return q;
-            });
+    const linkQuestToGoal = useCallback(async (questId: string, goalId: string) => {
+        if (!user) return;
+        const quest = gameState.quests.find(q => q.id === questId);
+        const goal = gameState.goals.find(g => g.id === goalId);
 
-            const updatedGoals = prev.goals.map(g => {
-                if (g.id === goalId) {
-                    if (!g.questIds.includes(questId)) {
-                        return { ...g, questIds: [...g.questIds, questId] };
-                    }
-                } else if (g.questIds.includes(questId)) {
-                    // Remove from other goals to ensure 1 goal per quest
-                    return { ...g, questIds: g.questIds.filter(id => id !== questId) };
-                }
-                return g;
-            });
+        if (quest && goal) {
+            await dbService.upsertDocument(user.uid, "quests", { ...quest, goalId });
+            if (!goal.questIds.includes(questId)) {
+                await dbService.upsertDocument(user.uid, "goals", { ...goal, questIds: [...goal.questIds, questId] });
+            }
 
-            return {
-                ...prev,
-                quests: updatedQuests,
-                goals: updatedGoals
-            };
-        });
+            // Unlink from other goals
+            for (const otherGoal of gameState.goals) {
+                if (otherGoal.id !== goalId && otherGoal.questIds.includes(questId)) {
+                    await dbService.upsertDocument(user.uid, "goals", {
+                        ...otherGoal,
+                        questIds: otherGoal.questIds.filter(id => id !== questId)
+                    });
+                }
+            }
+        }
         addNotification('Quest linked to Goal', 'SUCCESS');
-    }, [addNotification]);
+    }, [user, gameState.quests, gameState.goals, addNotification]);
 
-    const unlinkQuestFromGoal = useCallback((questId: string) => {
-        setGameState(prev => {
-            const updatedQuests = prev.quests.map(q => {
-                if (q.id === questId) {
-                    const { goalId: _, ...rest } = q;
-                    return rest as Quest;
+    const unlinkQuestFromGoal = useCallback(async (questId: string) => {
+        if (!user) return;
+        const quest = gameState.quests.find(q => q.id === questId);
+        if (quest) {
+            const { goalId, ...rest } = quest;
+            await dbService.upsertDocument(user.uid, "quests", rest as Quest);
+
+            for (const goal of gameState.goals) {
+                if (goal.questIds.includes(questId)) {
+                    await dbService.upsertDocument(user.uid, "goals", {
+                        ...goal,
+                        questIds: goal.questIds.filter(id => id !== questId)
+                    });
                 }
-                return q;
-            });
-
-            const updatedGoals = prev.goals.map(g => {
-                if (g.questIds.includes(questId)) {
-                    return { ...g, questIds: g.questIds.filter(id => id !== questId) };
-                }
-                return g;
-            });
-
-            return {
-                ...prev,
-                quests: updatedQuests,
-                goals: updatedGoals
-            };
-        });
+            }
+        }
         addNotification('Quest unlinked from Goal', 'INFO');
-    }, [addNotification]);
+    }, [user, gameState.quests, gameState.goals, addNotification]);
 
-    const deleteQuest = useCallback((questId: string) => {
-        setGameState(prev => {
-            const newQuests = prev.quests.filter(q => q.id !== questId);
-            const newGoals = prev.goals.map(g => ({
-                ...g,
-                questIds: g.questIds.filter(id => id !== questId)
-            }));
-            return {
-                ...prev,
-                quests: newQuests,
-                goals: newGoals
-            };
-        });
+    const deleteQuest = useCallback(async (questId: string) => {
+        if (!user) return;
+        await dbService.deleteDocument(user.uid, "quests", questId);
+        for (const goal of gameState.goals) {
+            if (goal.questIds.includes(questId)) {
+                await dbService.upsertDocument(user.uid, "goals", {
+                    ...goal,
+                    questIds: goal.questIds.filter(id => id !== questId)
+                });
+            }
+        }
         addNotification('Quest deleted from system', 'WARNING');
-    }, [addNotification]);
+    }, [user, gameState.goals, addNotification]);
 
-    const deleteGoal = useCallback((goalId: string) => {
-        setGameState(prev => {
-            const newGoals = prev.goals.filter(g => g.id !== goalId);
-            // Unlink quests that were associated with this goal
-            const newQuests = prev.quests.map(q => {
-                if (q.goalId === goalId) {
-                    const { goalId: _, ...rest } = q;
-                    return rest as Quest;
-                }
-                return q;
-            });
-            return {
-                ...prev,
-                goals: newGoals,
-                quests: newQuests
-            };
-        });
+    const deleteGoal = useCallback(async (goalId: string) => {
+        if (!user) return;
+        await dbService.deleteDocument(user.uid, "goals", goalId);
+        for (const quest of gameState.quests) {
+            if (quest.goalId === goalId) {
+                const { goalId: _, ...rest } = quest;
+                await dbService.upsertDocument(user.uid, "quests", rest as Quest);
+            }
+        }
         addNotification('Macro Objective terminated', 'WARNING');
-    }, [addNotification]);
+    }, [user, gameState.quests, addNotification]);
 
     return {
         gameState,
         notifications,
+        isMigrationPending,
+        isSyncing,
+        performMigration,
+        cancelMigration,
         addLog,
         addQuest,
         gainXp,

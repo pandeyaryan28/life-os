@@ -1,7 +1,7 @@
 import type { GameState } from '../types';
 
 export const INITIAL_STATE: GameState = {
-    version: '1.3.0',
+    version: '1.4.0',
     player: {
         name: 'Player',
         level: 1,
@@ -31,6 +31,7 @@ export const INITIAL_STATE: GameState = {
         },
         skills: [],
         traits: [],
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     quests: [
         {

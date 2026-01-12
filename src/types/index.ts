@@ -62,6 +62,7 @@ export interface PlayerProfile {
     };
     skills: Skill[];
     traits: Trait[];
+    timezone: string;
 }
 
 export type QuestType = 'MAIN' | 'SIDE' | 'DAILY';
