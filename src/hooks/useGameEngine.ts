@@ -14,6 +14,16 @@ export const useGameEngine = () => {
     const [isMigrationPending, setIsMigrationPending] = useState(false);
     const [isSyncing, setIsSyncing] = useState(true);
 
+    // Sync safety timeout
+    useEffect(() => {
+        if (!isSyncing) return;
+        const timer = setTimeout(() => {
+            console.log('Sync timeout reached, forcing entry...');
+            setIsSyncing(false);
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, [isSyncing]);
+
     // Load local storage if exists for migration check
     useEffect(() => {
         if (!user) return;
@@ -40,13 +50,17 @@ export const useGameEngine = () => {
 
         // Sync Profile
         const unsubProfile = dbService.syncDocument<PlayerProfile>(user.uid, "profile", "data", (profile) => {
-            setGameState(prev => ({ ...prev, player: { ...prev.player, ...profile } }));
+            if (profile) {
+                setGameState(prev => ({ ...prev, player: { ...prev.player, ...profile } }));
+            }
             setIsSyncing(false);
         });
 
         // Sync Stats
         const unsubStats = dbService.syncDocument<Stats>(user.uid, "stats", "current", (stats) => {
-            setGameState(prev => ({ ...prev, player: { ...prev.player, stats } }));
+            if (stats) {
+                setGameState(prev => ({ ...prev, player: { ...prev.player, stats } }));
+            }
         });
 
         // Sync Quests
@@ -344,8 +358,10 @@ export const useGameEngine = () => {
         const completed = last30DaysQuests.filter(q => q.status === 'COMPLETED').length;
         const newScore = Math.round((completed / last30DaysQuests.length) * 100);
 
+        const { stats: _, ...pData } = gameState.player;
         await dbService.upsertDocument(user.uid, "profile", {
-            ...gameState.player,
+            ...pData,
+            id: 'data',
             consistencyScore: newScore
         });
     }, [user, gameState.quests, gameState.player]);
@@ -379,8 +395,10 @@ export const useGameEngine = () => {
             leveledUp = true;
         }
 
+        const { stats: _, ...pData } = gameState.player;
         await dbService.upsertDocument(user.uid, "profile", {
-            ...gameState.player,
+            ...pData,
+            id: 'data',
             xp,
             level,
             maxXp
@@ -431,6 +449,7 @@ export const useGameEngine = () => {
         const { stats: _, ...profileData } = gameState.player;
         await dbService.upsertDocument(user.uid, "profile", {
             ...profileData,
+            id: 'data',
             credits: newCredits
         });
         await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
@@ -464,6 +483,7 @@ export const useGameEngine = () => {
         await dbService.upsertDocument(user.uid, "quests", updatedQuest);
         await dbService.upsertDocument(user.uid, "profile", {
             ...profileData,
+            id: 'data',
             credits: newCredits
         });
         await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
@@ -483,8 +503,10 @@ export const useGameEngine = () => {
         const newCredits = gameState.player.credits - newExpense.amount;
 
         // Update Profile
+        const { stats: _, ...pData } = gameState.player;
         await dbService.upsertDocument(user.uid, "profile", {
-            ...gameState.player,
+            ...pData,
+            id: 'data',
             credits: newCredits
         });
 

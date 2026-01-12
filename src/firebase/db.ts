@@ -43,6 +43,8 @@ export const syncCollection = <T extends { id: string }>(
             data.push({ id: doc.id, ...doc.data() } as T);
         });
         callback(data);
+    }, (error) => {
+        console.error(`Firestore Sync Error [${collectionName}]:`, error);
     });
 };
 
@@ -50,18 +52,34 @@ export const syncDocument = <T>(
     userId: string,
     collectionName: string,
     docId: string,
-    callback: (data: T) => void
+    callback: (data: T | null) => void
 ) => {
     return onSnapshot(doc(db, USERS_COLLECTION, userId, collectionName, docId), (doc) => {
         if (doc.exists()) {
             callback(doc.data() as T);
+        } else {
+            callback(null);
         }
+    }, (error) => {
+        console.error(`Firestore Doc Sync Error [${collectionName}/${docId}]:`, error);
     });
 };
 
 export const upsertDocument = async (userId: string, collectionName: string, data: any) => {
-    const docRef = doc(db, USERS_COLLECTION, userId, collectionName, data.id);
-    await setDoc(docRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+    try {
+        const docId = data.id || (collectionName === "profile" ? "data" : (collectionName === "stats" ? "current" : (collectionName === "system" ? "settings" : null)));
+
+        if (!docId) {
+            console.error(`Missing ID for collection: ${collectionName}`, data);
+            throw new Error(`Critical Error: Document ID missing for ${collectionName}`);
+        }
+
+        const docRef = doc(db, USERS_COLLECTION, userId, collectionName, docId);
+        await setDoc(docRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (error) {
+        console.error(`Firestore Upsert Error [${collectionName}]:`, error);
+        throw error;
+    }
 };
 
 export const deleteDocument = async (userId: string, collectionName: string, docId: string) => {

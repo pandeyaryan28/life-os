@@ -19,10 +19,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <main className="relative z-10 container mx-auto p-4 h-screen flex flex-col">
                 <header className="flex justify-between items-center py-4 border-b border-system-border mb-6">
                     <h1 className="text-2xl font-mono font-bold text-system-blue tracking-wider uppercase text-glow">
-                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.3.1</span>
+                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.4.0</span>
                     </h1>
-                    <div className="text-xs font-mono text-system-gold animate-pulse">
-                        SYSTEM ONLINE
+                    <div className="flex gap-4 items-center">
+                        <div className="flex items-center gap-2 px-2 py-0.5 bg-system-blue/10 border border-system-blue/20 rounded-sm">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                            <span className="text-[10px] font-mono text-system-blue uppercase">Neural Link: Online</span>
+                        </div>
+                        <div className="text-xs font-mono text-system-gold animate-pulse uppercase">
+                            Core Sync Active
+                        </div>
                     </div>
                 </header>
 
