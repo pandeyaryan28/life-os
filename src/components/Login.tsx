@@ -4,17 +4,38 @@ import { Shield, Zap, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Login: React.FC = () => {
-    const { signInAnonymously } = useAuth();
+    const { signInAnonymously, signInWithEmail, signUpWithEmail } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [mode, setMode] = useState<'ANONYMOUS' | 'EMAIL'>('ANONYMOUS');
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-    const handleLogin = async () => {
+    const handleAnonymousLogin = async () => {
         setLoading(true);
         setError(null);
         try {
             await signInAnonymously();
         } catch (err: any) {
             setError(err.message || 'Failed to initialize system session.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEmailAuth = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            if (isRegistering) {
+                await signUpWithEmail(email, password);
+            } else {
+                await signInWithEmail(email, password);
+            }
+        } catch (err: any) {
+            setError(err.message || 'Authentication failed.');
         } finally {
             setLoading(false);
         }
@@ -43,7 +64,22 @@ export const Login: React.FC = () => {
                         <p className="text-gray-400">Initialize Neural Synchronization Protocol</p>
                     </div>
 
-                    <AnimatePresence>
+                    <div className="flex bg-white/5 p-1 rounded-xl mb-6">
+                        <button
+                            onClick={() => setMode('ANONYMOUS')}
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-widest ${mode === 'ANONYMOUS' ? 'bg-cyan-500 text-black' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            Quick Start
+                        </button>
+                        <button
+                            onClick={() => setMode('EMAIL')}
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-widest ${mode === 'EMAIL' ? 'bg-cyan-500 text-black' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            Neural Account
+                        </button>
+                    </div>
+
+                    <AnimatePresence mode="wait">
                         {error && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
@@ -57,23 +93,71 @@ export const Login: React.FC = () => {
                         )}
                     </AnimatePresence>
 
-                    <div className="space-y-4">
-                        <button
-                            onClick={handleLogin}
-                            disabled={loading}
-                            className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:hover:bg-cyan-500 text-black font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
-                            {loading ? (
-                                <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                            ) : (
-                                <>
-                                    <Zap className="w-5 h-5" />
-                                    <span>INITIALIZE CORE ENGINE</span>
-                                </>
-                            )}
-                        </button>
+                    {mode === 'ANONYMOUS' ? (
+                        <div className="space-y-4">
+                            <button
+                                onClick={handleAnonymousLogin}
+                                disabled={loading}
+                                className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:hover:bg-cyan-500 text-black font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
+                                {loading ? (
+                                    <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        <Zap className="w-5 h-5" />
+                                        <span>INITIALIZE CORE ENGINE</span>
+                                    </>
+                                )}
+                            </button>
+                            <p className="text-[10px] text-center text-gray-500 uppercase tracking-widest font-medium leading-relaxed px-4">
+                                Instant access to terminal with ephemeral identity link.
+                            </p>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleEmailAuth} className="space-y-4">
+                            <div>
+                                <input
+                                    type="email"
+                                    placeholder="Neural Identifier (Email)"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                                />
+                            </div>
+                            <div>
+                                <input
+                                    type="password"
+                                    placeholder="Access Key (Password)"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3"
+                            >
+                                {loading ? (
+                                    <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                ) : (
+                                    <span>{isRegistering ? 'REGISTER NEURAL LINK' : 'ESTABLISH CONNECTION'}</span>
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsRegistering(!isRegistering)}
+                                className="w-full text-[10px] text-gray-500 hover:text-cyan-400 transition-colors uppercase tracking-widest font-bold"
+                            >
+                                {isRegistering ? 'Already have a link? Sign In' : 'Need a neural account? Register'}
+                            </button>
+                        </form>
+                    )}
 
+                    <div className="mt-8 pt-8 border-t border-white/5">
                         <p className="text-[10px] text-center text-gray-500 uppercase tracking-widest font-medium">
                             Secure Encrypted Link • Firestore Persistent Layer
                         </p>

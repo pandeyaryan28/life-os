@@ -3,6 +3,8 @@ import {
     onAuthStateChanged,
     type User,
     signInAnonymously,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
     signOut as firebaseSignOut
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
@@ -11,6 +13,8 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     signInAnonymously: () => Promise<void>;
+    signInWithEmail: (email: string, password: string) => Promise<void>;
+    signUpWithEmail: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -38,6 +42,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const loginWithEmail = async (email: string, password: string) => {
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error("Error signing in with email:", error);
+            throw error;
+        }
+    };
+
+    const registerWithEmail = async (email: string, password: string) => {
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error("Error signing up with email:", error);
+            throw error;
+        }
+    };
+
     const logout = async () => {
         try {
             await firebaseSignOut(auth);
@@ -48,7 +70,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, signInAnonymously: loginAnonymously, logout }}>
+        <AuthContext.Provider value={{
+            user,
+            loading,
+            signInAnonymously: loginAnonymously,
+            signInWithEmail: loginWithEmail,
+            signUpWithEmail: registerWithEmail,
+            logout
+        }}>
             {children}
         </AuthContext.Provider>
     );
