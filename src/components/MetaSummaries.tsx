@@ -60,9 +60,9 @@ export const MetaSummaries: React.FC<SummaryProps> = ({ isOpen, onClose, gameSta
                                     <p className="text-[9px] font-mono text-system-text/30 uppercase mt-2 tracking-widest">Total Completed Quests</p>
                                 </div>
                                 <div className="p-6 bg-white/5 border border-system-border/30 rounded-sm">
-                                    <h4 className="text-[10px] font-mono text-system-text/40 uppercase tracking-widest mb-4">Consistency Score</h4>
-                                    <div className="text-4xl font-black text-system-gold italic">{player.consistencyScore}</div>
-                                    <p className="text-[9px] font-mono text-system-text/30 uppercase mt-2 tracking-widest">30-Day Stability Factor</p>
+                                    <h4 className="text-[10px] font-mono text-system-text/40 uppercase tracking-widest mb-4">Current Streak</h4>
+                                    <div className="text-4xl font-black text-system-gold italic">{player.streak}D 🔥</div>
+                                    <p className="text-[9px] font-mono text-system-text/30 uppercase mt-2 tracking-widest">Consecutive Days Active</p>
                                 </div>
                             </div>
 
@@ -94,7 +94,7 @@ export const MetaSummaries: React.FC<SummaryProps> = ({ isOpen, onClose, gameSta
                                 </div>
                                 <div className="flex items-start gap-4">
                                     <div className="text-xs text-system-text/60 font-medium leading-relaxed italic">
-                                        "Based on current data, your <span className="text-white font-bold underline decoration-system-danger/40 uppercase">Failed Quests ({failedQuests})</span> correlate with low <span className="text-white font-bold uppercase underline decoration-system-danger/40">Energy levels</span> during late-stage execution. Recommend shifting high-difficulty tasks to peak energy windows."
+                                        "Based on current data, your <span className="text-white font-bold underline decoration-system-danger/40 uppercase">Failed Quests ({failedQuests})</span> correlate with low <span className="text-white font-bold uppercase underline decoration-system-danger/40">Discipline levels</span> during late-stage execution. Recommend shifting high-difficulty tasks to peak performance windows."
                                     </div>
                                 </div>
                             </section>

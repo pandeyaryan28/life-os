@@ -7,7 +7,6 @@ export interface Stats {
     social: number;
     wealth: number;
     focus: number;
-    energy: number;
 }
 
 export interface PlayerStage {
@@ -43,7 +42,9 @@ export interface Trait {
 }
 
 export interface PlayerProfile {
-    name: string;
+    firstName: string;
+    lastName?: string;
+    age?: number;
     level: number;
     xp: number;
     maxXp: number;
@@ -54,12 +55,6 @@ export interface PlayerProfile {
     lastLogin: string; // ISO Date string
     stageId: string;
     stageStartedAt: string; // ISO Date string
-    consistencyScore: number;
-    focusMode: {
-        isActive: boolean;
-        sessionStartedAt?: string;
-        dailyTotalSeconds: number;
-    };
     skills: Skill[];
     traits: Trait[];
     timezone: string;

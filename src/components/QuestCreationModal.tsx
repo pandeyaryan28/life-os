@@ -5,17 +5,17 @@ import type { Quest, QuestType, Stats, Goal } from '../types';
 interface QuestCreationModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (quest: Omit<Quest, 'id' | 'status'>) => void;
-    availableGoals: Goal[];
+    onCreateQuest: (quest: Omit<Quest, 'id' | 'status'>) => void;
+    goals: Goal[];
     initialGoalId?: string;
 }
 
 const STAT_OPTIONS: (keyof Stats)[] = [
     'physical', 'mental', 'discipline', 'knowledge',
-    'creativity', 'social', 'wealth', 'focus', 'energy'
+    'creativity', 'social', 'wealth', 'focus'
 ];
 
-export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, onClose, onSubmit, availableGoals, initialGoalId }) => {
+export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, onClose, onCreateQuest, goals, initialGoalId }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState<QuestType>('SIDE');
@@ -24,6 +24,7 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
     const [creditReward, setCreditReward] = useState(0);
     const [selectedGoalId, setSelectedGoalId] = useState<string>('');
     const [selectedStats, setSelectedStats] = useState<Partial<Record<keyof Stats, number>>>({});
+    const [deadline, setDeadline] = useState('');
 
     React.useEffect(() => {
         if (isOpen && initialGoalId) {
@@ -35,12 +36,13 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({
+        onCreateQuest({
             title,
             description,
             type,
             difficulty,
             goalId: selectedGoalId || undefined,
+            deadline: deadline || undefined,
             rewards: {
                 xp: xpReward,
                 credits: creditReward,
@@ -57,7 +59,17 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
         setCreditReward(0);
         setSelectedGoalId('');
         setSelectedStats({});
+        setDeadline('');
     };
+
+    // Esc key support
+    React.useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [onClose]);
 
     const toggleStat = (stat: keyof Stats) => {
         setSelectedStats(prev => {
@@ -142,21 +154,32 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                             </div>
                         </div>
 
-                        {/* Goal Link Selection */}
-                        <div>
-                            <label className="block text-xs font-mono text-system-blue uppercase mb-1">Link to Goal (Optional)</label>
-                            <select
-                                value={selectedGoalId}
-                                onChange={e => setSelectedGoalId(e.target.value)}
-                                className="w-full bg-system-dark border border-system-border p-2 text-white font-mono focus:border-system-blue outline-none transition-colors"
-                            >
-                                <option value="">NO GOAL LINKED</option>
-                                {availableGoals.map(goal => (
-                                    <option key={goal.id} value={goal.id}>
-                                        {goal.name.toUpperCase()} ({goal.category || 'GENERAL'})
-                                    </option>
-                                ))}
-                            </select>
+                        {/* Goal Link Selection & Deadline */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-mono text-system-blue uppercase mb-1">Link to Goal (Optional)</label>
+                                <select
+                                    value={selectedGoalId}
+                                    onChange={e => setSelectedGoalId(e.target.value)}
+                                    className="w-full bg-system-dark border border-system-border p-2 text-white font-mono focus:border-system-blue outline-none transition-colors"
+                                >
+                                    <option value="">NO GOAL LINKED</option>
+                                    {goals.map(goal => (
+                                        <option key={goal.id} value={goal.id}>
+                                            {goal.name.toUpperCase()}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-mono text-system-blue uppercase mb-1">Deadline (Optional)</label>
+                                <input
+                                    type="datetime-local"
+                                    value={deadline}
+                                    onChange={e => setDeadline(e.target.value)}
+                                    className="w-full bg-system-dark border border-system-border p-2 text-white font-mono focus:border-system-blue outline-none transition-colors"
+                                />
+                            </div>
                         </div>
                     </div>
 

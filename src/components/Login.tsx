@@ -262,7 +262,7 @@ export const Login: React.FC = () => {
                         <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
                         <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Master Node: Active</span>
                     </div>
-                    <span className="text-[10px] font-mono text-gray-600 uppercase">Version 1.4.0_Stable</span>
+                    <span className="text-[10px] font-mono text-gray-600 uppercase">Version 1.5.0_Stable</span>
                 </div>
             </motion.div>
         </div>

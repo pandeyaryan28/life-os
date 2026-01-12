@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Quest, QuestType } from '../types';
-import { CheckSquare, Square, AlertTriangle, Plus, X } from 'lucide-react';
+import { CheckSquare, Square, AlertTriangle, Plus, X, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface QuestLogProps {
@@ -122,6 +122,11 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                             {quest.goalId && (
                                                 <span className="text-[8px] bg-system-blue/20 text-system-blue px-1.5 py-0.5 rounded-full border border-system-blue/30 uppercase tracking-tighter">
                                                     Linked to Goal
+                                                </span>
+                                            )}
+                                            {quest.deadline && new Date(quest.deadline) < new Date() && quest.status === 'ACTIVE' && (
+                                                <span className="text-[8px] bg-system-danger/20 text-system-danger px-1.5 py-0.5 rounded-full border border-system-danger/30 uppercase tracking-tighter flex items-center gap-1">
+                                                    <Clock size={8} /> OVERDUE
                                                 </span>
                                             )}
                                         </h3>

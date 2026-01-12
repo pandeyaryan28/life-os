@@ -149,42 +149,54 @@ export const useGameEngine = () => {
 
         const checkSystemResets = async () => {
             const now = new Date();
-            const lastLogin = new Date(gameState.player.lastLogin);
+            const lastLoginDate = new Date(gameState.player.lastLogin);
 
-            // Use UTC dates for comparison
-            const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-            const lastLoginUTC = new Date(Date.UTC(lastLogin.getUTCFullYear(), lastLogin.getUTCMonth(), lastLogin.getUTCDate()));
+            // Local day comparison
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const lastLoginDay = new Date(lastLoginDate.getFullYear(), lastLoginDate.getMonth(), lastLoginDate.getDate()).getTime();
 
-            if (todayUTC.getTime() > lastLoginUTC.getTime()) {
+            if (today > lastLoginDay) {
                 // New day detected
                 const batchUpdates: Promise<any>[] = [];
+                let anyDailyMissed = false;
 
                 // Reset Daily Quests
                 gameState.quests.forEach(q => {
                     if (q.type === 'DAILY') {
+                        if (q.status === 'ACTIVE') {
+                            anyDailyMissed = true;
+                        }
+
                         const wasCompleted = q.status === 'COMPLETED';
                         const newStreak = wasCompleted ? (q.streak || 0) : 0;
+
                         batchUpdates.push(dbService.upsertDocument(user.uid, "quests", {
                             ...q,
                             status: 'ACTIVE',
                             streak: newStreak,
-                            lastCompletedAt: wasCompleted ? q.lastCompletedAt : gameState.player.lastLogin
+                            lastCompletedAt: wasCompleted ? q.lastCompletedAt : (q.lastCompletedAt || gameState.player.lastLogin)
                         }));
                     }
                 });
 
-                // Update Profile Last Login
+                // Update Profile Last Login and Streak
                 const { stats: _, ...pLat } = gameState.player;
+                const newPlayerStreak = anyDailyMissed ? 0 : gameState.player.streak;
+
                 batchUpdates.push(dbService.upsertDocument(user.uid, "profile", {
                     ...pLat,
                     id: 'data',
-                    lastLogin: now.toISOString()
+                    lastLogin: now.toISOString(),
+                    streak: newPlayerStreak
                 }));
 
                 await Promise.all(batchUpdates);
 
+                if (anyDailyMissed) {
+                    addLog('System Calibration: Streak reset due to missed objectives.', 'WARNING');
+                }
                 addLog('Neural Synchronization: Daily cycles recalibrated.', 'SYSTEM');
-                addNotification('NEW CYCLE DETECTED: Dailies Reset', 'INFO');
+                addNotification('NEW CYCLE DETECTED', 'INFO');
             }
 
             // Recurring Expenses Logic
@@ -237,25 +249,7 @@ export const useGameEngine = () => {
         return () => clearInterval(timer);
     }, [user, isSyncing, gameState.player, gameState.quests, gameState.expenses]);
 
-    // Focus Mode Timer
-    useEffect(() => {
-        let timer: ReturnType<typeof setInterval>;
-        if (gameState.player.focusMode.isActive) {
-            timer = setInterval(() => {
-                setGameState(prev => ({
-                    ...prev,
-                    player: {
-                        ...prev.player,
-                        focusMode: {
-                            ...prev.player.focusMode,
-                            dailyTotalSeconds: prev.player.focusMode.dailyTotalSeconds + 1
-                        }
-                    }
-                }));
-            }, 1000);
-        }
-        return () => clearInterval(timer);
-    }, [gameState.player.focusMode.isActive]);
+
 
     const addNotification = useCallback((message: string, type: Notification['type'] = 'INFO') => {
         const id = Date.now().toString() + Math.random();
@@ -287,22 +281,18 @@ export const useGameEngine = () => {
         addNotification('System settings updated.', 'INFO');
     }, [user, gameState.settings, addNotification]);
 
-    const toggleFocusMode = useCallback(async () => {
+    const updateProfile = useCallback(async (profileData: Partial<PlayerProfile>) => {
         if (!user) return;
-        const isActive = !gameState.player.focusMode.isActive;
-        const updatedFocusMode = {
-            ...gameState.player.focusMode,
-            isActive,
-            sessionStartedAt: isActive ? new Date().toISOString() : undefined
-        };
-        const { stats: _, ...pData } = gameState.player;
+        const { stats: _, ...currentLockedProfile } = gameState.player;
         await dbService.upsertDocument(user.uid, "profile", {
-            ...pData,
+            ...currentLockedProfile,
+            ...profileData,
             id: 'data',
-            focusMode: updatedFocusMode
         });
-        addNotification(isActive ? 'FOCUS MODE ACTIVATED' : 'FOCUS MODE DEACTIVATED', isActive ? 'INFO' : 'SUCCESS');
+        addNotification('Profile identifier updated.', 'SUCCESS');
     }, [user, gameState.player, addNotification]);
+
+
 
     const advanceStage = useCallback(async (stageId: string) => {
         if (!user) return;
@@ -344,27 +334,7 @@ export const useGameEngine = () => {
         addLog(`Quest Created: ${newQuest.title}`, 'INFO');
     }, [user, gameState.goals, addNotification, addLog]);
 
-    const calculateConsistency = useCallback(async () => {
-        if (!user) return;
-        const last30DaysQuests = gameState.quests.filter(q => {
-            const createdDate = new Date(parseInt(q.id));
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            return createdDate > thirtyDaysAgo && (q.status === 'COMPLETED' || q.status === 'FAILED');
-        });
 
-        if (last30DaysQuests.length === 0) return;
-
-        const completed = last30DaysQuests.filter(q => q.status === 'COMPLETED').length;
-        const newScore = Math.round((completed / last30DaysQuests.length) * 100);
-
-        const { stats: _, ...pData } = gameState.player;
-        await dbService.upsertDocument(user.uid, "profile", {
-            ...pData,
-            id: 'data',
-            consistencyScore: newScore
-        });
-    }, [user, gameState.quests, gameState.player]);
 
     const updateStats = useCallback(async (statsDelta: Partial<Stats>) => {
         if (!user) return;
@@ -429,18 +399,30 @@ export const useGameEngine = () => {
             completedCount: (quest.completedCount || 0) + 1
         };
 
-        const isFatigued = gameState.player.stats.energy < 20;
-        const multiplier = isFatigued ? 0.5 : 1.0;
         const { credits, stats } = quest.rewards;
-
         const newStats = { ...gameState.player.stats };
         if (stats) {
             (Object.entries(stats) as [keyof Stats, number][]).forEach(([key, value]) => {
-                if (value) newStats[key] = (newStats[key] || 0) + (value * multiplier);
+                if (value) newStats[key] = (newStats[key] || 0) + value;
             });
         }
 
-        const newCredits = gameState.player.credits + ((credits || 0) * multiplier);
+        const newCredits = gameState.player.credits + (credits || 0);
+
+        // Streak logic for player
+        let newPlayerStreak = gameState.player.streak;
+        if (isDaily) {
+            const now = new Date();
+            const lastCompleted = quest.lastCompletedAt ? new Date(quest.lastCompletedAt) : null;
+            const isFirstCompletionToday = !lastCompleted ||
+                (now.getFullYear() !== lastCompleted.getFullYear() ||
+                    now.getMonth() !== lastCompleted.getMonth() ||
+                    now.getDate() !== lastCompleted.getDate());
+
+            if (isFirstCompletionToday) {
+                newPlayerStreak += 1;
+            }
+        }
 
         // Update Quest
         await dbService.upsertDocument(user.uid, "quests", updatedQuest);
@@ -450,19 +432,15 @@ export const useGameEngine = () => {
         await dbService.upsertDocument(user.uid, "profile", {
             ...profileData,
             id: 'data',
-            credits: newCredits
+            credits: newCredits,
+            streak: newPlayerStreak
         });
         await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
 
-        if (isFatigued) {
-            addNotification('FATIGUE ACTIVE: Rewards reduced by 50%', 'WARNING');
-        }
-
-        gainXp(quest.rewards.xp * multiplier);
+        gainXp(quest.rewards.xp);
         addNotification(`QUEST COMPLETED: ${quest.title}`, 'SUCCESS');
         addLog(`Quest Completed: ${quest.title}`, 'SUCCESS');
-        calculateConsistency();
-    }, [user, gameState.quests, gameState.player, gainXp, addNotification, addLog, calculateConsistency]);
+    }, [user, gameState.quests, gameState.player, gainXp, addNotification, addLog]);
 
     const failQuest = useCallback(async (questId: string) => {
         if (!user) return;
@@ -490,8 +468,7 @@ export const useGameEngine = () => {
 
         addNotification(`QUEST FAILED: ${quest.title}`, 'FAILURE');
         addLog(`Quest Failed: ${quest.title}`, 'ERROR');
-        calculateConsistency();
-    }, [user, gameState.quests, gameState.player, addNotification, addLog, calculateConsistency]);
+    }, [user, gameState.quests, gameState.player, addNotification, addLog]);
 
     // v1.3 Economy Module
     const addExpense = useCallback(async (expenseData: Omit<Expense, 'id' | 'timestamp'>) => {
@@ -647,9 +624,9 @@ export const useGameEngine = () => {
         completeQuest,
         failQuest,
         addNotification,
-        toggleFocusMode,
         advanceStage,
         updateSettings,
+        updateProfile,
         addExpense,
         applyManualAdjustment,
         addGoal,

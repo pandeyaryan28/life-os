@@ -6,13 +6,14 @@ import { QuestLog } from './QuestLog';
 import { SystemOverlay } from './SystemOverlay';
 import { QuestCreationModal } from './QuestCreationModal';
 import { StageOverview } from './StageOverview';
-import { FocusModeOverlay } from './FocusModeOverlay';
 import { MetaSummaries } from './MetaSummaries';
 import { ExpensesPanel } from './ExpensesPanel';
 import { ManualAdjustmentPanel } from './ManualAdjustmentPanel';
 import { GoalsPanel } from './GoalsPanel';
 import { MigrationModal } from './MigrationModal';
-import { Zap, Terminal, Settings as SettingsIcon, BarChart3, RefreshCw, XCircle, Calendar as CalendarIcon, Cloud } from 'lucide-react';
+import { Terminal, Settings as SettingsIcon, BarChart3, RefreshCw, XCircle, Calendar as CalendarIcon, Cloud, LogOut, BookOpen } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { SystemGuide } from './SystemGuide';
 
 export const Dashboard: React.FC = () => {
     const {
@@ -25,7 +26,6 @@ export const Dashboard: React.FC = () => {
         addQuest,
         completeQuest,
         failQuest,
-        toggleFocusMode,
         advanceStage,
         updateSettings,
         addExpense,
@@ -36,12 +36,14 @@ export const Dashboard: React.FC = () => {
         deleteQuest,
         deleteGoal
     } = useGameEngine();
+    const { logout } = useAuth();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [preSelectedGoalId, setPreSelectedGoalId] = useState<string | undefined>(undefined);
     const [isStageOverviewOpen, setIsStageOverviewOpen] = useState(false);
     const [summaryType, setSummaryType] = useState<'WEEKLY' | 'MONTHLY' | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isGuideOpen, setIsGuideOpen] = useState(false);
 
     return (
         <Layout>
@@ -64,11 +66,7 @@ export const Dashboard: React.FC = () => {
                 </div>
             )}
 
-            <FocusModeOverlay
-                isActive={gameState.player.focusMode.isActive}
-                onExit={toggleFocusMode}
-                durationSeconds={gameState.player.focusMode.dailyTotalSeconds}
-            />
+
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 h-full pb-6">
                 {/* Column 1: Identity & Penalties */}
@@ -167,14 +165,19 @@ export const Dashboard: React.FC = () => {
                         ) : (
                             <div className="space-y-3">
                                 <button
-                                    onClick={toggleFocusMode}
-                                    className={`w-full py-3 border flex items-center justify-center gap-3 transition-all active:scale-95 group relative overflow-hidden
-                                        ${gameState.player.focusMode.isActive
-                                            ? 'border-system-blue bg-system-blue/10 text-system-blue shadow-[0_0_15px_rgba(0,170,255,0.2)]'
-                                            : 'border-system-border hover:border-system-blue/50 text-system-text/60 hover:text-white'}`}
+                                    onClick={() => logout()}
+                                    className="w-full py-3 border border-system-danger/30 hover:border-system-danger bg-system-danger/5 text-system-danger/60 hover:text-system-danger transition-all active:scale-95 flex items-center justify-center gap-3 group"
                                 >
-                                    <Zap size={14} className={gameState.player.focusMode.isActive ? 'animate-pulse' : 'opacity-40 group-hover:opacity-100'} />
-                                    <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em]">Focus Mode</span>
+                                    <LogOut size={14} />
+                                    <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em]">Sign Out</span>
+                                </button>
+
+                                <button
+                                    onClick={() => setIsGuideOpen(true)}
+                                    className="w-full py-3 border border-system-blue/30 hover:border-system-blue bg-system-blue/5 text-system-blue/60 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-3 group"
+                                >
+                                    <BookOpen size={14} />
+                                    <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em]">System Guide</span>
                                 </button>
 
                                 <div className="grid grid-cols-2 gap-2">
@@ -210,8 +213,8 @@ export const Dashboard: React.FC = () => {
                     setIsCreateModalOpen(false);
                     setPreSelectedGoalId(undefined);
                 }}
-                onSubmit={addQuest}
-                availableGoals={gameState.goals}
+                onCreateQuest={addQuest}
+                goals={gameState.goals}
                 initialGoalId={preSelectedGoalId}
             />
 
@@ -220,6 +223,11 @@ export const Dashboard: React.FC = () => {
                 onClose={() => setIsStageOverviewOpen(false)}
                 player={gameState.player}
                 onAdvance={advanceStage}
+            />
+
+            <SystemGuide
+                isOpen={isGuideOpen}
+                onClose={() => setIsGuideOpen(false)}
             />
 
             <MetaSummaries

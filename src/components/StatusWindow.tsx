@@ -81,7 +81,7 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({ player, onViewStage 
 
             <div className="flex justify-between items-start mb-6 relative">
                 <div>
-                    <h2 className="text-xl font-black text-white tracking-widest uppercase italic">{player.name}</h2>
+                    <h2 className="text-xl font-black text-white tracking-widest uppercase italic">Player {player.firstName}</h2>
                     <button
                         onClick={onViewStage}
                         className="flex items-center gap-1.5 text-system-blue font-mono text-[10px] uppercase tracking-[0.2em] mt-1 group-hover:text-blue-400 transition-colors"
@@ -110,26 +110,7 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({ player, onViewStage 
                 </div>
             </div>
 
-            {/* Consistency Engine Indicator */}
-            <div className="mb-6 flex gap-2 items-center p-2 bg-system-dark/50 border border-system-border/30 rounded-sm">
-                <div className="bg-system-blue/20 p-1.5 rounded-sm">
-                    <Shield size={16} className="text-system-blue" />
-                </div>
-                <div className="flex-1">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-[9px] font-mono text-system-text/50 uppercase tracking-widest">Consistency</span>
-                        <span className={`text-[10px] font-mono font-bold ${player.consistencyScore >= 80 ? 'text-green-400' : 'text-system-gold'}`}>
-                            {player.consistencyScore}%
-                        </span>
-                    </div>
-                    <div className="h-1 bg-system-dark rounded-full overflow-hidden">
-                        <div
-                            className={`h-full transition-all duration-1000 ${player.consistencyScore >= 80 ? 'bg-green-500' : 'bg-system-gold'}`}
-                            style={{ width: `${player.consistencyScore}%` }}
-                        />
-                    </div>
-                </div>
-            </div>
+
 
             <div className="mb-6 p-3 bg-system-dark/30 border border-system-border/20 rounded-sm">
                 <div className="flex justify-between text-[10px] font-mono mb-2">
@@ -151,7 +132,7 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({ player, onViewStage 
                 <StatRow label="Mental" value={player.stats.mental} icon={<Brain size={14} />} />
                 <StatRow label="Discipline" value={player.stats.discipline} icon={<Target size={14} />} />
                 <StatRow label="Knowledge" value={player.stats.knowledge} icon={<BookOpen size={14} />} />
-                <StatRow label="Energy" value={player.stats.energy} icon={<Zap size={14} />} />
+
                 <StatRow label="Wealth" value={player.stats.wealth} icon={<DollarSign size={14} />} />
                 <StatRow label="Social" value={player.stats.social} icon={<Smile size={14} />} />
             </div>

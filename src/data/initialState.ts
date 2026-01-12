@@ -1,9 +1,9 @@
 import type { GameState } from '../types';
 
 export const INITIAL_STATE: GameState = {
-    version: '1.4.0',
+    version: '1.5.0',
     player: {
-        name: 'Player',
+        firstName: 'Player',
         level: 1,
         xp: 0,
         maxXp: 100,
@@ -17,18 +17,12 @@ export const INITIAL_STATE: GameState = {
             social: 10,
             wealth: 10,
             focus: 10,
-            energy: 100,
         },
         credits: 0,
         streak: 0,
         lastLogin: new Date().toISOString(),
         stageId: 'awakened',
         stageStartedAt: new Date().toISOString(),
-        consistencyScore: 100,
-        focusMode: {
-            isActive: false,
-            dailyTotalSeconds: 0,
-        },
         skills: [],
         traits: [],
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -74,7 +68,7 @@ export const INITIAL_STATE: GameState = {
         {
             id: 'log-init',
             timestamp: new Date().toISOString(),
-            message: 'System Initialized. Welcome to LIFE OS v1.3.0.',
+            message: 'System Initialized. Welcome to LIFE OS v1.5.0.',
             type: 'SYSTEM',
         },
     ],

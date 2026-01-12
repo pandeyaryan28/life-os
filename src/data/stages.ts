@@ -28,7 +28,7 @@ export const STAGES: PlayerStage[] = [
             minLevel: 10,
             minStats: { focus: 20, mental: 20 },
         },
-        unlocks: ['Focus Mode enhancements', 'Performance multipliers (Configurable)'],
+        unlocks: ['Performance multipliers (Configurable)'],
         restrictions: [],
     },
     {
@@ -48,7 +48,7 @@ export const STAGES: PlayerStage[] = [
         description: 'Transcending standard human performance limits.',
         entryConditions: {
             minLevel: 40,
-            minStats: { physical: 40, mental: 40, energy: 150 },
+            minStats: { physical: 40, mental: 40 },
         },
         unlocks: ['Trait discovery mode', 'Deep retrospective analysis'],
         restrictions: [],
