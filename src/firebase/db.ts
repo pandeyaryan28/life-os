@@ -65,6 +65,18 @@ export const syncDocument = <T>(
     });
 };
 
+const cleanData = (data: any) => {
+    const cleaned = { ...data };
+    Object.keys(cleaned).forEach(key => {
+        if (cleaned[key] === undefined) {
+            delete cleaned[key];
+        } else if (cleaned[key] !== null && typeof cleaned[key] === 'object' && !Array.isArray(cleaned[key])) {
+            cleaned[key] = cleanData(cleaned[key]);
+        }
+    });
+    return cleaned;
+};
+
 export const upsertDocument = async (userId: string, collectionName: string, data: any) => {
     try {
         const docId = data.id || (collectionName === "profile" ? "data" : (collectionName === "stats" ? "current" : (collectionName === "system" ? "settings" : null)));
@@ -74,8 +86,9 @@ export const upsertDocument = async (userId: string, collectionName: string, dat
             throw new Error(`Critical Error: Document ID missing for ${collectionName}`);
         }
 
+        const cleanedData = cleanData(data);
         const docRef = doc(db, USERS_COLLECTION, userId, collectionName, docId);
-        await setDoc(docRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+        await setDoc(docRef, { ...cleanedData, updatedAt: serverTimestamp() }, { merge: true });
     } catch (error) {
         console.error(`Firestore Upsert Error [${collectionName}]:`, error);
         throw error;
@@ -93,44 +106,44 @@ export const migrateLocalStorageToFirestore = async (userId: string, gameState: 
     // Profile
     const profileRef = doc(db, USERS_COLLECTION, userId, "profile", "data");
     const { stats, ...profileData } = gameState.player;
-    batch.set(profileRef, { ...profileData, lastLogin: serverTimestamp() });
+    batch.set(profileRef, cleanData({ ...profileData, lastLogin: serverTimestamp() }));
 
     // Stats
     const statsRef = doc(db, USERS_COLLECTION, userId, "stats", "current");
-    batch.set(statsRef, { ...stats, updatedAt: serverTimestamp() });
+    batch.set(statsRef, cleanData({ ...stats, updatedAt: serverTimestamp() }));
 
     // Settings
     const settingsRef = doc(db, USERS_COLLECTION, userId, "system", "settings");
-    batch.set(settingsRef, { ...gameState.settings, updatedAt: serverTimestamp() });
+    batch.set(settingsRef, cleanData({ ...gameState.settings, updatedAt: serverTimestamp() }));
 
     // Quests
     gameState.quests.forEach(quest => {
         const questRef = doc(db, USERS_COLLECTION, userId, "quests", quest.id);
-        batch.set(questRef, { ...quest, updatedAt: serverTimestamp() });
+        batch.set(questRef, cleanData({ ...quest, updatedAt: serverTimestamp() }));
     });
 
     // Goals
     gameState.goals.forEach(goal => {
         const goalRef = doc(db, USERS_COLLECTION, userId, "goals", goal.id);
-        batch.set(goalRef, { ...goal, updatedAt: serverTimestamp() });
+        batch.set(goalRef, cleanData({ ...goal, updatedAt: serverTimestamp() }));
     });
 
     // Economy/Expenses
     gameState.expenses.forEach(expense => {
         const expRef = doc(db, USERS_COLLECTION, userId, "economy", expense.id);
-        batch.set(expRef, { ...expense, updatedAt: serverTimestamp() });
+        batch.set(expRef, cleanData({ ...expense, updatedAt: serverTimestamp() }));
     });
 
     // Ledger (Expense History)
     gameState.expenseHistory.forEach(history => {
         const historyRef = doc(db, USERS_COLLECTION, userId, "ledger", history.id);
-        batch.set(historyRef, { ...history, createdAt: serverTimestamp() });
+        batch.set(historyRef, cleanData({ ...history, createdAt: serverTimestamp() }));
     });
 
     // Manual Adjustments
     gameState.manualAdjustments.forEach(adj => {
         const adjRef = doc(db, USERS_COLLECTION, userId, "system", adj.id);
-        batch.set(adjRef, { ...adj, createdAt: serverTimestamp() });
+        batch.set(adjRef, cleanData({ ...adj, createdAt: serverTimestamp() }));
     });
 
     await batch.commit();
