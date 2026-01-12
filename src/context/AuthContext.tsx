@@ -5,6 +5,8 @@ import {
     signInAnonymously,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider,
     signOut as firebaseSignOut
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
@@ -15,6 +17,7 @@ interface AuthContextType {
     signInAnonymously: () => Promise<void>;
     signInWithEmail: (email: string, password: string) => Promise<void>;
     signUpWithEmail: (email: string, password: string) => Promise<void>;
+    signInWithGoogle: () => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -60,6 +63,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const loginWithGoogle = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            console.error("Error signing in with Google:", error);
+            throw error;
+        }
+    };
+
     const logout = async () => {
         try {
             await firebaseSignOut(auth);
@@ -76,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             signInAnonymously: loginAnonymously,
             signInWithEmail: loginWithEmail,
             signUpWithEmail: registerWithEmail,
+            signInWithGoogle: loginWithGoogle,
             logout
         }}>
             {children}

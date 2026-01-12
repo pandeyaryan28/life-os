@@ -1,16 +1,28 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Zap, Info } from 'lucide-react';
+import { Shield, Info, Mail, Globe, ArrowRight, UserCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Login: React.FC = () => {
-    const { signInAnonymously, signInWithEmail, signUpWithEmail } = useAuth();
+    const { signInAnonymously, signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [mode, setMode] = useState<'ANONYMOUS' | 'EMAIL'>('ANONYMOUS');
+    const [mode, setMode] = useState<'SELECT' | 'EMAIL' | 'ANONYMOUS'>('SELECT');
     const [isRegistering, setIsRegistering] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    const handleGoogleLogin = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            await signInWithGoogle();
+        } catch (err: any) {
+            setError(err.message || 'Google synchronization failed.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleAnonymousLogin = async () => {
         setLoading(true);
@@ -18,7 +30,7 @@ export const Login: React.FC = () => {
         try {
             await signInAnonymously();
         } catch (err: any) {
-            setError(err.message || 'Failed to initialize system session.');
+            setError(err.message || 'Quick Start link failed.');
         } finally {
             setLoading(false);
         }
@@ -51,41 +63,34 @@ export const Login: React.FC = () => {
             </div>
 
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md relative z-10"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full max-w-[440px] relative z-10"
             >
-                <div className="bg-[#111] border border-white/10 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
-                    <div className="flex flex-col items-center text-center mb-8">
-                        <div className="w-16 h-16 bg-cyan-500/20 rounded-xl flex items-center justify-center mb-6 border border-cyan-500/30">
-                            <Shield className="w-8 h-8 text-cyan-400" />
-                        </div>
-                        <h1 className="text-3xl font-bold tracking-tight mb-2 font-mono italic">LIFE OS <span className="text-cyan-500">v1.4.0</span></h1>
-                        <p className="text-gray-400">Initialize Neural Synchronization Protocol</p>
-                    </div>
-
-                    <div className="flex bg-white/5 p-1 rounded-xl mb-6">
-                        <button
-                            onClick={() => setMode('ANONYMOUS')}
-                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-widest ${mode === 'ANONYMOUS' ? 'bg-cyan-500 text-black' : 'text-gray-500 hover:text-white'}`}
+                <div className="bg-[#111]/80 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+                    {/* Header */}
+                    <div className="flex flex-col items-center text-center mb-10">
+                        <motion.div
+                            initial={{ y: -20 }}
+                            animate={{ y: 0 }}
+                            className="w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mb-6 border border-white/10 shadow-[0_0_20px_rgba(6,182,212,0.1)]"
                         >
-                            Quick Start
-                        </button>
-                        <button
-                            onClick={() => setMode('EMAIL')}
-                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-widest ${mode === 'EMAIL' ? 'bg-cyan-500 text-black' : 'text-gray-500 hover:text-white'}`}
-                        >
-                            Neural Account
-                        </button>
+                            <Shield className="w-10 h-10 text-cyan-400" />
+                        </motion.div>
+                        <h1 className="text-4xl font-black tracking-tighter mb-3 font-mono italic">
+                            LIFE <span className="text-cyan-500">OS</span>
+                        </h1>
+                        <div className="h-[1px] w-12 bg-cyan-500/30 mb-3" />
+                        <p className="text-gray-400 text-sm max-w-[280px]">Establish your interface within the neural persistence layer.</p>
                     </div>
 
                     <AnimatePresence mode="wait">
                         {error && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6 text-red-400 text-sm flex items-start gap-3"
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-8 text-red-400 text-xs flex items-start gap-4"
                             >
                                 <Info className="w-4 h-4 shrink-0 mt-0.5" />
                                 <p>{error}</p>
@@ -93,86 +98,171 @@ export const Login: React.FC = () => {
                         )}
                     </AnimatePresence>
 
-                    {mode === 'ANONYMOUS' ? (
-                        <div className="space-y-4">
-                            <button
-                                onClick={handleAnonymousLogin}
-                                disabled={loading}
-                                className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:hover:bg-cyan-500 text-black font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
+                    <AnimatePresence mode="wait">
+                        {mode === 'SELECT' && (
+                            <motion.div
+                                key="select-mode"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="space-y-4"
                             >
-                                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
-                                {loading ? (
-                                    <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                ) : (
-                                    <>
-                                        <Zap className="w-5 h-5" />
-                                        <span>INITIALIZE CORE ENGINE</span>
-                                    </>
-                                )}
-                            </button>
-                            <p className="text-[10px] text-center text-gray-500 uppercase tracking-widest font-medium leading-relaxed px-4">
-                                Instant access to terminal with ephemeral identity link.
-                            </p>
-                        </div>
-                    ) : (
-                        <form onSubmit={handleEmailAuth} className="space-y-4">
-                            <div>
-                                <input
-                                    type="email"
-                                    placeholder="Neural Identifier (Email)"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
-                                />
-                            </div>
-                            <div>
-                                <input
-                                    type="password"
-                                    placeholder="Access Key (Password)"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3"
-                            >
-                                {loading ? (
-                                    <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                ) : (
-                                    <span>{isRegistering ? 'REGISTER NEURAL LINK' : 'ESTABLISH CONNECTION'}</span>
-                                )}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setIsRegistering(!isRegistering)}
-                                className="w-full text-[10px] text-gray-500 hover:text-cyan-400 transition-colors uppercase tracking-widest font-bold"
-                            >
-                                {isRegistering ? 'Already have a link? Sign In' : 'Need a neural account? Register'}
-                            </button>
-                        </form>
-                    )}
+                                <button
+                                    onClick={handleGoogleLogin}
+                                    disabled={loading}
+                                    className="w-full bg-white text-black font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 hover:bg-gray-200 active:scale-[0.98] disabled:opacity-50"
+                                >
+                                    <Globe className="w-5 h-5" />
+                                    <span>Sync via Neural Cluster (Google)</span>
+                                </button>
 
-                    <div className="mt-8 pt-8 border-t border-white/5">
-                        <p className="text-[10px] text-center text-gray-500 uppercase tracking-widest font-medium">
-                            Secure Encrypted Link • Firestore Persistent Layer
-                        </p>
-                    </div>
+                                <button
+                                    onClick={() => setMode('EMAIL')}
+                                    disabled={loading}
+                                    className="w-full bg-white/5 border border-white/10 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 hover:bg-white/10 active:scale-[0.98]"
+                                >
+                                    <Mail className="w-5 h-5 text-purple-400" />
+                                    <span>Establish Neural Link (Email)</span>
+                                </button>
+
+                                <div className="relative py-4">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-white/5"></div>
+                                    </div>
+                                    <div className="relative flex justify-center text-[10px] uppercase tracking-[0.3em] text-gray-600 font-bold bg-[#111] px-4">
+                                        Legacy Port
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => setMode('ANONYMOUS')}
+                                    disabled={loading}
+                                    className="w-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 hover:bg-cyan-500/20 group"
+                                >
+                                    <UserCircle2 className="w-5 h-5 group-hover:animate-pulse" />
+                                    <span>Quick Start Protocol</span>
+                                </button>
+                                <p className="text-[10px] text-center text-gray-500 mt-4 leading-relaxed tracking-wider italic">
+                                    Recommended: Neural accounts provide device-agnostic synchronisation.
+                                </p>
+                            </motion.div>
+                        )}
+
+                        {mode === 'EMAIL' && (
+                            <motion.div
+                                key="email-mode"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                            >
+                                <form onSubmit={handleEmailAuth} className="space-y-4">
+                                    <div className="space-y-4">
+                                        <div className="relative">
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                            <input
+                                                type="email"
+                                                placeholder="Neural Identifier"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                required
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-600"
+                                            />
+                                        </div>
+                                        <div className="relative">
+                                            <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                            <input
+                                                type="password"
+                                                placeholder="Interface Access Key"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                required
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-600"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+                                    >
+                                        {loading ? (
+                                            <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                        ) : (
+                                            <>
+                                                <span>{isRegistering ? 'INITIALIZE NEW LINK' : 'ESTABLISH LINK'}</span>
+                                                <ArrowRight className="w-4 h-4" />
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <div className="flex flex-col gap-3 mt-6">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsRegistering(!isRegistering)}
+                                            className="text-[10px] text-gray-500 hover:text-cyan-400 transition-colors uppercase tracking-widest font-bold"
+                                        >
+                                            {isRegistering ? 'Switch to authentication' : 'Switch to registration protocol'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setMode('SELECT')}
+                                            className="text-[10px] text-gray-400 hover:text-white transition-colors uppercase tracking-[0.2em] font-medium"
+                                        >
+                                            Return to Uplink
+                                        </button>
+                                    </div>
+                                </form>
+                            </motion.div>
+                        )}
+
+                        {mode === 'ANONYMOUS' && (
+                            <motion.div
+                                key="anon-mode"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="text-center"
+                            >
+                                <div className="bg-cyan-500/5 border border-cyan-500/10 rounded-2xl p-6 mb-8">
+                                    <div className="w-12 h-12 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500/20">
+                                        <UserCircle2 className="w-6 h-6 text-cyan-400" />
+                                    </div>
+                                    <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-widest">Protocol Breakdown</h3>
+                                    <p className="text-xs text-gray-500 leading-relaxed">
+                                        Initializes an ephemeral session linked to this browser only. Data will not persist across different neural nodes (devices).
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={handleAnonymousLogin}
+                                    disabled={loading}
+                                    className="w-full bg-cyan-500 text-black font-bold py-4 rounded-2xl transition-all hover:bg-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.2)]"
+                                >
+                                    {loading ? (
+                                        <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin mx-auto" />
+                                    ) : (
+                                        'EXECUTE QUICK START'
+                                    )}
+                                </button>
+
+                                <button
+                                    onClick={() => setMode('SELECT')}
+                                    className="mt-6 text-[10px] text-gray-400 hover:text-white transition-colors uppercase tracking-[0.2em] font-bold"
+                                >
+                                    Return to Uplink
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
-                <div className="mt-8 grid grid-cols-2 gap-4">
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center text-center">
-                        <div className="text-cyan-500 text-xs font-bold mb-1 uppercase">Cloud Sync</div>
-                        <div className="text-[10px] text-gray-500">Device Agnostic Data</div>
+                <div className="mt-8 flex justify-between items-center px-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Master Node: Active</span>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center text-center">
-                        <div className="text-purple-500 text-xs font-bold mb-1 uppercase">Zero Trust</div>
-                        <div className="text-[10px] text-gray-500">Encrypted Persistence</div>
-                    </div>
+                    <span className="text-[10px] font-mono text-gray-600 uppercase">Version 1.4.0_Stable</span>
                 </div>
             </motion.div>
         </div>
