@@ -16,7 +16,7 @@ interface GoalsPanelProps {
 
 const STAT_OPTIONS: (keyof Stats)[] = [
     'physical', 'mental', 'discipline', 'knowledge',
-    'creativity', 'social', 'wealth', 'focus', 'energy'
+    'creativity', 'social', 'wealth', 'focus'
 ];
 
 export const GoalsPanel: React.FC<GoalsPanelProps> = ({

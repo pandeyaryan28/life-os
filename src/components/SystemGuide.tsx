@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, BookOpen, Target, Zap, TrendingUp, Shield, HelpCircle, Layers } from 'lucide-react';
+import { X, BookOpen, Target, Zap, HelpCircle, Layers } from 'lucide-react';
 import { STAGES } from '../data/stages';
 
 interface SystemGuideProps {

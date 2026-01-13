@@ -10,7 +10,7 @@ interface ManualAdjustmentPanelProps {
 
 const STAT_LABELS: (keyof Stats)[] = [
     'physical', 'mental', 'discipline', 'knowledge',
-    'creativity', 'social', 'wealth', 'focus', 'energy'
+    'creativity', 'social', 'wealth', 'focus'
 ];
 
 export const ManualAdjustmentPanel: React.FC<ManualAdjustmentPanelProps> = ({ history, onApplyAdjustment }) => {

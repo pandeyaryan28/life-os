@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import type { PlayerProfile } from '../types';
-import { Activity, Brain, Zap, Target, BookOpen, DollarSign, Smile, Shield, Info, Star, Award } from 'lucide-react';
+import { Activity, Brain, Target, BookOpen, DollarSign, Smile, Info, Star, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { STAGES } from '../data/stages';
 
