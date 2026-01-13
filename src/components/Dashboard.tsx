@@ -11,8 +11,7 @@ import { ExpensesPanel } from './ExpensesPanel';
 import { ManualAdjustmentPanel } from './ManualAdjustmentPanel';
 import { GoalsPanel } from './GoalsPanel';
 import { MigrationModal } from './MigrationModal';
-import { Terminal, Settings as SettingsIcon, BarChart3, RefreshCw, XCircle, Calendar as CalendarIcon, Cloud, LogOut, BookOpen } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { Terminal, Settings as SettingsIcon, BarChart3, RefreshCw, XCircle, Calendar as CalendarIcon, Cloud, BookOpen } from 'lucide-react';
 import { SystemGuide } from './SystemGuide';
 
 export const Dashboard: React.FC = () => {
@@ -36,7 +35,6 @@ export const Dashboard: React.FC = () => {
         deleteQuest,
         deleteGoal
     } = useGameEngine();
-    const { logout } = useAuth();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [preSelectedGoalId, setPreSelectedGoalId] = useState<string | undefined>(undefined);
@@ -164,13 +162,6 @@ export const Dashboard: React.FC = () => {
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                <button
-                                    onClick={() => logout()}
-                                    className="w-full py-3 border border-system-danger/30 hover:border-system-danger bg-system-danger/5 text-system-danger/60 hover:text-system-danger transition-all active:scale-95 flex items-center justify-center gap-3 group"
-                                >
-                                    <LogOut size={14} />
-                                    <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em]">Sign Out</span>
-                                </button>
 
                                 <button
                                     onClick={() => setIsGuideOpen(true)}

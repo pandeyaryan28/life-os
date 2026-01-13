@@ -28,7 +28,7 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
         const today = new Date().toDateString();
         return expenseHistory
             .filter(e => new Date(e.timestamp).toDateString() === today)
-            .reduce((sum, e) => sum - (e.amount || 0), 0);
+            .reduce((sum, e) => sum + (e.amount || 0), 0);
     }, [expenseHistory]);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -68,9 +68,9 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                     <p className="text-xl font-black text-system-gold font-mono">{credits.toLocaleString()} <span className="text-xs opacity-50">C</span></p>
                 </div>
                 <div className="space-y-1">
-                    <p className="text-[10px] font-mono text-system-text/40 uppercase">Today's Net</p>
-                    <p className={`text-xl font-black font-mono ${todayNetChange < 0 ? 'text-system-danger' : 'text-green-400'}`}>
-                        {todayNetChange > 0 ? '+' : ''}{todayNetChange.toLocaleString()} <span className="text-xs opacity-50">C</span>
+                    <p className="text-[10px] font-mono text-system-text/40 uppercase">Today's Spends</p>
+                    <p className="text-xl font-black font-mono text-white">
+                        {todayNetChange.toLocaleString()} <span className="text-xs opacity-50">C</span>
                     </p>
                 </div>
             </div>

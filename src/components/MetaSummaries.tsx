@@ -38,8 +38,9 @@ export const MetaSummaries: React.FC<SummaryProps> = ({ isOpen, onClose, gameSta
                                 </h2>
                                 <p className="text-[10px] font-mono text-system-text/40 uppercase tracking-[0.4em] mt-2">Data-Driven Execution Analysis / v1.2</p>
                             </div>
-                            <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-full transition-colors border border-system-border/30">
-                                <X size={24} className="text-system-text/60" />
+                            <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-sm transition-colors border border-system-border/30 flex items-center gap-2 group">
+                                <span className="text-xs font-mono font-bold text-system-text/60 group-hover:text-white uppercase tracking-widest">Close System</span>
+                                <X size={24} className="text-system-text/60 group-hover:text-white" />
                             </button>
                         </div>
 
