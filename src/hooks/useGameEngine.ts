@@ -403,7 +403,8 @@ export const useGameEngine = () => {
             });
         }
 
-        const newCredits = gameState.player.credits + (credits || 0);
+        const creditReward = credits || 0;
+        const newCredits = gameState.player.credits + creditReward;
 
         // Streak logic for player
         let newPlayerStreak = gameState.player.streak;
@@ -434,8 +435,15 @@ export const useGameEngine = () => {
         await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
 
         gainXp(quest.rewards.xp);
-        addNotification(`QUEST COMPLETED: ${quest.title}`, 'SUCCESS');
-        addLog(`Quest Completed: ${quest.title}`, 'SUCCESS');
+
+        // Enhanced notification with credit info
+        if (creditReward > 0) {
+            addNotification(`QUEST COMPLETED: ${quest.title} | +${creditReward} Credits`, 'SUCCESS');
+            addLog(`Quest Completed: ${quest.title} | Earned ${creditReward} Credits`, 'SUCCESS');
+        } else {
+            addNotification(`QUEST COMPLETED: ${quest.title}`, 'SUCCESS');
+            addLog(`Quest Completed: ${quest.title}`, 'SUCCESS');
+        }
     }, [user, gameState.quests, gameState.player, gainXp, addNotification, addLog]);
 
     const failQuest = useCallback(async (questId: string) => {
@@ -451,7 +459,8 @@ export const useGameEngine = () => {
             });
         }
 
-        const newCredits = Math.max(0, gameState.player.credits - (quest.penalty?.credits || 0));
+        const creditPenalty = quest.penalty?.credits || 0;
+        const newCredits = Math.max(0, gameState.player.credits - creditPenalty);
 
         const { stats: _, ...profileData } = gameState.player;
         await dbService.upsertDocument(user.uid, "quests", updatedQuest);
@@ -462,8 +471,14 @@ export const useGameEngine = () => {
         });
         await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
 
-        addNotification(`QUEST FAILED: ${quest.title}`, 'FAILURE');
-        addLog(`Quest Failed: ${quest.title}`, 'ERROR');
+        // Enhanced notification with penalty info
+        if (creditPenalty > 0) {
+            addNotification(`QUEST FAILED: ${quest.title} | -${creditPenalty} Credits`, 'FAILURE');
+            addLog(`Quest Failed: ${quest.title} | Lost ${creditPenalty} Credits`, 'ERROR');
+        } else {
+            addNotification(`QUEST FAILED: ${quest.title}`, 'FAILURE');
+            addLog(`Quest Failed: ${quest.title}`, 'ERROR');
+        }
     }, [user, gameState.quests, gameState.player, addNotification, addLog]);
 
     // v1.3 Economy Module
