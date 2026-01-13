@@ -48,18 +48,35 @@ export const useGameEngine = () => {
         // Initialize user profile if new
         dbService.initializeUserProfile(user.uid, INITIAL_STATE.player);
 
-        // Sync Profile
-        const unsubProfile = dbService.syncDocument<PlayerProfile>(user.uid, "profile", "data", (profile) => {
+        // Sync Profile (WITHOUT credits - credits in separate wallet)
+        const unsubProfile = dbService.syncDocument<Omit<PlayerProfile, 'credits' | 'stats'>>(user.uid, "profile", "data", (profile) => {
             if (profile) {
-                setGameState(prev => ({ ...prev, player: { ...prev.player, ...profile } }));
+                setGameState(prev => ({
+                    ...prev,
+                    player: {
+                        ...prev.player,
+                        ...profile,
+                        // Preserve credits and stats from current state
+                        credits: prev.player.credits,
+                        stats: prev.player.stats
+                    }
+                }));
             }
             setIsSyncing(false);
         });
 
-        // Sync Stats
+        // Sync Stats (separate document)
         const unsubStats = dbService.syncDocument<Stats>(user.uid, "stats", "current", (stats) => {
             if (stats) {
                 setGameState(prev => ({ ...prev, player: { ...prev.player, stats } }));
+            }
+        });
+
+        // Sync Wallet/Credits (NEW - separate document)
+        const unsubWallet = dbService.syncDocument<{ credits: number }>(user.uid, "economy", "wallet", (wallet) => {
+            if (wallet) {
+                console.log('💰 Wallet Sync:', wallet.credits);
+                setGameState(prev => ({ ...prev, player: { ...prev.player, credits: wallet.credits } }));
             }
         });
 
@@ -73,9 +90,11 @@ export const useGameEngine = () => {
             setGameState(prev => ({ ...prev, goals }));
         });
 
-        // Sync Expenses
-        const unsubExpenses = dbService.syncCollection<Expense>(user.uid, "economy", (expenses) => {
-            setGameState(prev => ({ ...prev, expenses }));
+        // Sync Expenses (filtered to exclude wallet document)
+        const unsubExpenses = dbService.syncCollection<Expense>(user.uid, "economy", (allDocs) => {
+            // Filter out the wallet document
+            const expenses = allDocs.filter(doc => doc.id !== 'wallet');
+            setGameState(prev => ({ ...prev, expenses: expenses as Expense[] }));
         });
 
         // Sync Ledger
@@ -98,9 +117,9 @@ export const useGameEngine = () => {
         return () => {
             unsubProfile();
             unsubStats();
+            unsubWallet();
             unsubQuests();
             unsubGoals();
-            unsubExpenses();
             unsubExpenses();
             unsubLedger();
             unsubSettings();
@@ -404,16 +423,6 @@ export const useGameEngine = () => {
         }
 
         const creditReward = credits || 0;
-        const oldCredits = gameState.player.credits;
-        const newCredits = oldCredits + creditReward;
-
-        console.log('🎯 Quest Completion Credit Debug:', {
-            questTitle: quest.title,
-            oldCredits,
-            creditReward,
-            newCredits,
-            playerData: gameState.player
-        });
 
         // Streak logic for player
         let newPlayerStreak = gameState.player.streak;
@@ -433,17 +442,25 @@ export const useGameEngine = () => {
         // Update Quest
         await dbService.upsertDocument(user.uid, "quests", updatedQuest);
 
-        // Update Profile & Stats
-        const { stats: _, ...profileData } = gameState.player;
+        // Update Profile & Stats (NO CREDITS HERE)
+        const { stats: _, credits: __, ...profileData } = gameState.player;
         await dbService.upsertDocument(user.uid, "profile", {
             ...profileData,
             id: 'data',
-            credits: newCredits,
             streak: newPlayerStreak
         });
         await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
 
-        console.log('✅ Credits saved to Firestore:', newCredits);
+        // ATOMIC CREDIT TRANSACTION
+        if (creditReward > 0) {
+            await dbService.executeCreditsTransaction(
+                user.uid,
+                creditReward,
+                'QUEST_REWARD',
+                `Quest completed: ${quest.title}`,
+                questId
+            );
+        }
 
         gainXp(quest.rewards.xp);
 
@@ -471,16 +488,25 @@ export const useGameEngine = () => {
         }
 
         const creditPenalty = quest.penalty?.credits || 0;
-        const newCredits = Math.max(0, gameState.player.credits - creditPenalty);
 
-        const { stats: _, ...profileData } = gameState.player;
+        const { stats: _, credits: __, ...profileData } = gameState.player;
         await dbService.upsertDocument(user.uid, "quests", updatedQuest);
         await dbService.upsertDocument(user.uid, "profile", {
             ...profileData,
-            id: 'data',
-            credits: newCredits
+            id: 'data'
         });
         await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
+
+        // ATOMIC CREDIT TRANSACTION (negative amount for penalty)
+        if (creditPenalty > 0) {
+            await dbService.executeCreditsTransaction(
+                user.uid,
+                -creditPenalty,
+                'QUEST_PENALTY',
+                `Quest failed: ${quest.title}`,
+                questId
+            );
+        }
 
         // Enhanced notification with penalty info
         if (creditPenalty > 0) {
@@ -502,15 +528,14 @@ export const useGameEngine = () => {
         // Only deduct credits for ONE_TIME expenses
         // RECURRING expenses are paid manually via payExpense
         if (newExpense.type === 'ONE_TIME') {
-            const newCredits = gameState.player.credits - newExpense.amount;
-
-            // Update Profile
-            const { stats: _, ...pData } = gameState.player;
-            await dbService.upsertDocument(user.uid, "profile", {
-                ...pData,
-                id: 'data',
-                credits: newCredits
-            });
+            // ATOMIC CREDIT TRANSACTION
+            await dbService.executeCreditsTransaction(
+                user.uid,
+                -newExpense.amount,
+                'EXPENSE',
+                `One-time expense: ${newExpense.name}`,
+                id
+            );
 
             // Add to Ledger (transaction history)
             await dbService.upsertDocument(user.uid, "ledger", newExpense);
@@ -530,12 +555,16 @@ export const useGameEngine = () => {
         const expense = gameState.expenses.find(e => e.id === expenseId);
         if (!expense || !expense.pendingPayment) return;
 
-        const newCredits = gameState.player.credits - expense.amount;
         const now = new Date();
 
-        // Update Profile
-        const { stats: _, ...pData } = gameState.player;
-        await dbService.upsertDocument(user.uid, "profile", { ...pData, id: 'data', credits: newCredits });
+        // ATOMIC CREDIT TRANSACTION
+        await dbService.executeCreditsTransaction(
+            user.uid,
+            -expense.amount,
+            'BILL_PAYMENT',
+            `Bill payment: ${expense.name}`,
+            expenseId
+        );
 
         // Update Expense (clear pending, set lastProcessed)
         await dbService.upsertDocument(user.uid, "economy", {
@@ -563,22 +592,29 @@ export const useGameEngine = () => {
         const timestamp = new Date().toISOString();
         const newAdj: ManualAdjustment = { ...adj, id, timestamp };
 
-        let newPlayer = { ...gameState.player };
         if (adj.type === 'XP') {
-            newPlayer.xp = Math.max(0, newPlayer.xp + (adj.value as number));
+            const newXp = Math.max(0, gameState.player.xp + (adj.value as number));
+            const { stats: _, credits: __, ...pData } = gameState.player;
+            await dbService.upsertDocument(user.uid, "profile", { ...pData, id: 'data', xp: newXp });
         } else if (adj.type === 'CREDITS') {
-            newPlayer.credits = Math.max(0, newPlayer.credits + (adj.value as number));
+            // ATOMIC CREDIT TRANSACTION
+            await dbService.executeCreditsTransaction(
+                user.uid,
+                adj.value as number,
+                'ADJUSTMENT',
+                `Manual adjustment: ${adj.reason}`,
+                id
+            );
         } else if (adj.type === 'STATS') {
+            const newStats = { ...gameState.player.stats };
             const statsDelta = adj.value as Partial<Stats>;
             Object.entries(statsDelta).forEach(([key, val]) => {
                 const k = key as keyof Stats;
-                newPlayer.stats[k] = Math.max(0, newPlayer.stats[k] + (val || 0));
+                newStats[k] = Math.max(0, newStats[k] + (val || 0));
             });
+            await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
         }
 
-        const { stats: _, ...pData } = newPlayer;
-        await dbService.upsertDocument(user.uid, "profile", pData);
-        await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newPlayer.stats });
         await dbService.upsertDocument(user.uid, "adjustments", newAdj);
 
         addLog(`Manual Adjustment (${adj.type}): ${adj.reason}`, 'WARNING');
