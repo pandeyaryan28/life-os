@@ -32,6 +32,15 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
         }
     }, [isOpen, initialGoalId]);
 
+    // Esc key support
+    React.useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [onClose]);
+
     if (!isOpen) return null;
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -61,15 +70,6 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
         setSelectedStats({});
         setDeadline('');
     };
-
-    // Esc key support
-    React.useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-    }, [onClose]);
 
     const toggleStat = (stat: keyof Stats) => {
         setSelectedStats(prev => {
