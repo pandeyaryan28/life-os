@@ -9,7 +9,7 @@ const OLD_STORAGE_KEY = 'life-os-save-v1.3.1';
 
 export const useGameEngine = () => {
     const { user } = useAuth();
-    const [gameState, setGameState] = useState<GameState>({ ...INITIAL_STATE, version: '1.4.0' });
+    const [gameState, setGameState] = useState<GameState>({ ...INITIAL_STATE, version: '1.5.1' });
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isMigrationPending, setIsMigrationPending] = useState(false);
     const [isSyncing, setIsSyncing] = useState(true);
@@ -90,14 +90,21 @@ export const useGameEngine = () => {
             }
         });
 
+        // Sync Adjustments (Penalties)
+        const unsubAdjustments = dbService.syncCollection<ManualAdjustment>(user.uid, "adjustments", (manualAdjustments) => {
+            setGameState(prev => ({ ...prev, manualAdjustments }));
+        });
+
         return () => {
             unsubProfile();
             unsubStats();
             unsubQuests();
             unsubGoals();
             unsubExpenses();
+            unsubExpenses();
             unsubLedger();
             unsubSettings();
+            unsubAdjustments();
         };
     }, [user]);
 
@@ -522,7 +529,7 @@ export const useGameEngine = () => {
         const { stats: _, ...pData } = newPlayer;
         await dbService.upsertDocument(user.uid, "profile", pData);
         await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newPlayer.stats });
-        await dbService.upsertDocument(user.uid, "system", newAdj);
+        await dbService.upsertDocument(user.uid, "adjustments", newAdj);
 
         addLog(`Manual Adjustment (${adj.type}): ${adj.reason}`, 'WARNING');
         addNotification(`ADJUSTMENT APPLIED: ${adj.type}`, 'WARNING');

@@ -28,7 +28,7 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
         const today = new Date().toDateString();
         return expenseHistory
             .filter(e => new Date(e.timestamp).toDateString() === today)
-            .reduce((sum, e) => sum - e.amount, 0);
+            .reduce((sum, e) => sum - (e.amount || 0), 0);
     }, [expenseHistory]);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -108,23 +108,26 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                         {expenseHistory.length === 0 ? (
                             <div className="py-8 text-center text-[10px] font-mono text-system-text/20 uppercase">No records found</div>
                         ) : (
-                            expenseHistory.map(exp => (
-                                <div key={exp.id} className="flex justify-between items-center py-2 border-b border-system-border/20 last:border-0 hover:bg-white/5 px-2 transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-1.5 bg-system-danger/10 text-system-danger rounded-sm">
-                                            <TrendingDown size={12} />
+                            expenseHistory
+                                .slice()
+                                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                                .map(exp => (
+                                    <div key={exp.id} className="flex justify-between items-center py-2 border-b border-system-border/20 last:border-0 hover:bg-white/5 px-2 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-1.5 bg-system-danger/10 text-system-danger rounded-sm">
+                                                <TrendingDown size={12} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[11px] font-bold text-white uppercase leading-none mb-1">{exp.name}</p>
+                                                <p className="text-[9px] font-mono text-system-text/40">{new Date(exp.timestamp).toLocaleString()}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-[11px] font-bold text-white uppercase leading-none mb-1">{exp.name}</p>
-                                            <p className="text-[9px] font-mono text-system-text/40">{new Date(exp.timestamp).toLocaleString()}</p>
+                                        <div className="text-right">
+                                            <p className="text-[11px] font-black text-system-danger font-mono">-{exp.amount}</p>
+                                            <p className="text-[8px] font-mono text-system-text/30 uppercase">{exp.category}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-[11px] font-black text-system-danger font-mono">-{exp.amount}</p>
-                                        <p className="text-[8px] font-mono text-system-text/30 uppercase">{exp.category}</p>
-                                    </div>
-                                </div>
-                            ))
+                                ))
                         )}
                     </div>
                 </div>
