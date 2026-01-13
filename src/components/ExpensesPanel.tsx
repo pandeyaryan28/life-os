@@ -8,13 +8,15 @@ interface ExpensesPanelProps {
     expenseHistory: Expense[];
     recurringExpenses: Expense[];
     onAddExpense: (expense: Omit<Expense, 'id' | 'timestamp'>) => void;
+    onPayExpense: (id: string) => void;
 }
 
 export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
     credits,
     expenseHistory,
     recurringExpenses,
-    onAddExpense
+    onAddExpense,
+    onPayExpense
 }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [name, setName] = useState('');
@@ -80,18 +82,31 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                 {recurringExpenses.length > 0 && (
                     <div>
                         <h3 className="text-[10px] font-mono text-system-blue uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <Repeat size={12} /> Recurring Deductions
+                            <Repeat size={12} /> Recurring Bills
                         </h3>
                         <div className="space-y-2">
                             {recurringExpenses.map(exp => (
-                                <div key={exp.id} className="p-3 bg-system-dark/50 border border-system-border/50 rounded-sm flex justify-between items-center group hover:border-system-blue/30 transition-colors">
+                                <div key={exp.id} className={`p-3 border rounded-sm flex justify-between items-center group transition-colors ${exp.pendingPayment ? 'bg-system-danger/10 border-system-danger/50' : 'bg-system-dark/50 border-system-border/50 hover:border-system-blue/30'}`}>
                                     <div>
-                                        <p className="text-xs font-bold text-white uppercase">{exp.name}</p>
-                                        <p className="text-[9px] font-mono text-system-text/40">{exp.frequency} • {exp.category}</p>
+                                        <p className="text-xs font-bold text-white uppercase flex items-center gap-2">
+                                            {exp.name}
+                                            {exp.pendingPayment && <span className="text-[8px] bg-system-danger text-white px-1 py-0.5 rounded-sm animate-pulse">DUE</span>}
+                                        </p>
+                                        <p className="text-[9px] font-mono text-system-text/40 uppercase">{exp.frequency} • {exp.category}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xs font-black text-system-danger font-mono">-{exp.amount} C</p>
-                                        <p className="text-[8px] font-mono text-system-text/30">NEXT: AUTO</p>
+                                    <div className="text-right flex items-center gap-3">
+                                        <div>
+                                            <p className="text-xs font-black text-system-danger font-mono">-{exp.amount} C</p>
+                                            <p className="text-[8px] font-mono text-system-text/30">NEXT: {exp.pendingPayment ? 'NOW' : 'AUTO'}</p>
+                                        </div>
+                                        {exp.pendingPayment && (
+                                            <button
+                                                onClick={() => onPayExpense(exp.id)}
+                                                className="px-3 py-1 bg-system-danger hover:bg-red-600 text-white text-[9px] font-black uppercase tracking-wider rounded-sm transition-all shadow-[0_0_10px_rgba(255,0,0,0.3)]"
+                                            >
+                                                PAY
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}

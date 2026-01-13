@@ -212,7 +212,6 @@ export const useGameEngine = () => {
 
         const processRecurringExpenses = async () => {
             const now = new Date();
-            let currentCredits = gameState.player.credits;
             const batchUpdates: Promise<any>[] = [];
 
             for (const exp of gameState.expenses) {
@@ -228,25 +227,15 @@ export const useGameEngine = () => {
                         shouldProcess = now.getUTCMonth() !== lastProcessed.getUTCMonth() || now.getUTCFullYear() !== lastProcessed.getUTCFullYear();
                     }
 
-                    if (shouldProcess) {
-                        currentCredits -= exp.amount;
-                        const historyEntry: Expense = { ...exp, id: `${exp.id}-${now.getTime()}`, timestamp: now.toISOString() };
-
-                        batchUpdates.push(dbService.upsertDocument(user.uid, "ledger", historyEntry));
-                        batchUpdates.push(dbService.upsertDocument(user.uid, "economy", { ...exp, lastProcessed: now.toISOString() }));
-
-                        addLog(`Automated Deduction: ${exp.name} (-${exp.amount} Credits)`, 'WARNING');
+                    if (shouldProcess && !exp.pendingPayment) {
+                        // Only mark as pending. Do NOT deduct automatically.
+                        batchUpdates.push(dbService.upsertDocument(user.uid, "economy", { ...exp, pendingPayment: true }));
+                        addNotification(`BILL DUE: ${exp.name}`, 'WARNING');
                     }
                 }
             }
 
             if (batchUpdates.length > 0) {
-                const { stats: _, ...pLat } = gameState.player;
-                batchUpdates.push(dbService.upsertDocument(user.uid, "profile", {
-                    ...pLat,
-                    id: 'data',
-                    credits: currentCredits
-                }));
                 await Promise.all(batchUpdates);
             }
         };
@@ -506,6 +495,37 @@ export const useGameEngine = () => {
         addNotification(`EXPENSE LOGGED: -${newExpense.amount} Credits`, 'INFO');
     }, [user, gameState.player, addLog, addNotification]);
 
+    const payExpense = useCallback(async (expenseId: string) => {
+        if (!user) return;
+        const expense = gameState.expenses.find(e => e.id === expenseId);
+        if (!expense || !expense.pendingPayment) return;
+
+        const newCredits = gameState.player.credits - expense.amount;
+        const now = new Date();
+
+        // Update Profile
+        const { stats: _, ...pData } = gameState.player;
+        await dbService.upsertDocument(user.uid, "profile", { ...pData, id: 'data', credits: newCredits });
+
+        // Update Expense (clear pending, set lastProcessed)
+        await dbService.upsertDocument(user.uid, "economy", {
+            ...expense,
+            pendingPayment: false,
+            lastProcessed: now.toISOString()
+        });
+
+        // Add to Ledger
+        await dbService.upsertDocument(user.uid, "ledger", {
+            ...expense,
+            id: `${expense.id}-${now.getTime()}`,
+            timestamp: now.toISOString(),
+            pendingPayment: false
+        });
+
+        addNotification(`Bill Paid: ${expense.name} (-${expense.amount} C)`, 'SUCCESS');
+        addLog(`Paid Bill: ${expense.name}`, 'WARNING');
+    }, [user, gameState.player, gameState.expenses, addNotification, addLog]);
+
     // v1.3 Manual Adjustment
     const applyManualAdjustment = useCallback(async (adj: Omit<ManualAdjustment, 'id' | 'timestamp'>) => {
         if (!user) return;
@@ -640,7 +660,8 @@ export const useGameEngine = () => {
         linkQuestToGoal,
         unlinkQuestFromGoal,
         deleteQuest,
-        deleteGoal
+        deleteGoal,
+        payExpense
     };
 };
 

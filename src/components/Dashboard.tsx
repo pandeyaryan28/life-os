@@ -33,6 +33,7 @@ export const Dashboard: React.FC = () => {
         linkQuestToGoal,
         unlinkQuestFromGoal,
         deleteQuest,
+        payExpense,
         deleteGoal
     } = useGameEngine();
 
@@ -117,6 +118,7 @@ export const Dashboard: React.FC = () => {
                             expenseHistory={gameState.expenseHistory}
                             recurringExpenses={gameState.expenses}
                             onAddExpense={addExpense}
+                            onPayExpense={payExpense}
                         />
                     </div>
 

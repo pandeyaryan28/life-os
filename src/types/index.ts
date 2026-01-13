@@ -96,6 +96,7 @@ export interface Expense {
     type: 'ONE_TIME' | 'RECURRING';
     frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
     lastProcessed?: string;
+    pendingPayment?: boolean;
     notes?: string;
 }
 
