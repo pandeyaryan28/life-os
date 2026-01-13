@@ -242,10 +242,12 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                 type="submit"
                                 className="w-full py-3 bg-system-danger/20 hover:bg-system-danger/40 border border-system-danger text-system-danger font-black uppercase tracking-[0.2em] transition-all text-xs"
                             >
-                                Deduct & Record Transaction
+                                {type === 'ONE_TIME' ? 'Deduct & Record Transaction' : 'Add to Bills (No Deduction)'}
                             </button>
                             <p className="text-[8px] font-mono text-system-text/30 text-center uppercase tracking-tighter">
-                                Warning: Deductions are permanent and audited in the ledger.
+                                {type === 'ONE_TIME'
+                                    ? 'Warning: Deductions are permanent and audited in the ledger.'
+                                    : 'Recurring bills are added to your economy list and paid manually when due.'}
                             </p>
                         </form>
                     </motion.div>
