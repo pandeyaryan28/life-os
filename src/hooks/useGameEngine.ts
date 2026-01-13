@@ -98,8 +98,18 @@ export const useGameEngine = () => {
         });
 
         // Sync Ledger
+        // Sync Ledger
         const unsubLedger = dbService.syncCollection<Expense>(user.uid, "ledger", (expenseHistory) => {
-            setGameState(prev => ({ ...prev, expenseHistory }));
+            // Filter to only include actual expenses (must have an amount or valid type)
+            // This prevents system logs from appearing in the economy view
+            const validExpenses = expenseHistory.filter(item =>
+                (item as any).amount !== undefined ||
+                (item as any).type === 'EXPENSE' ||
+                (item as any).type === 'BILL_PAYMENT' ||
+                (item as any).type === 'ONE_TIME' ||
+                (item as any).type === 'RECURRING'
+            );
+            setGameState(prev => ({ ...prev, expenseHistory: validExpenses }));
         });
 
         // Sync Settings
@@ -283,7 +293,8 @@ export const useGameEngine = () => {
             message,
             type,
         };
-        await dbService.upsertDocument(user.uid, "ledger", newLog);
+        // Store system logs in a separate 'logs' collection, NOT 'ledger'
+        await dbService.upsertDocument(user.uid, "logs", newLog);
     }, [user]);
 
     const updateSettings = useCallback(async (newSettings: Partial<GameState['settings']>) => {
