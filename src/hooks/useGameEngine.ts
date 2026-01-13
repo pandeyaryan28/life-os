@@ -404,7 +404,16 @@ export const useGameEngine = () => {
         }
 
         const creditReward = credits || 0;
-        const newCredits = gameState.player.credits + creditReward;
+        const oldCredits = gameState.player.credits;
+        const newCredits = oldCredits + creditReward;
+
+        console.log('🎯 Quest Completion Credit Debug:', {
+            questTitle: quest.title,
+            oldCredits,
+            creditReward,
+            newCredits,
+            playerData: gameState.player
+        });
 
         // Streak logic for player
         let newPlayerStreak = gameState.player.streak;
@@ -433,6 +442,8 @@ export const useGameEngine = () => {
             streak: newPlayerStreak
         });
         await dbService.upsertDocument(user.uid, "stats", { id: 'current', ...newStats });
+
+        console.log('✅ Credits saved to Firestore:', newCredits);
 
         gainXp(quest.rewards.xp);
 
@@ -488,26 +499,30 @@ export const useGameEngine = () => {
         const timestamp = new Date().toISOString();
         const newExpense: Expense = { ...expenseData, id, timestamp };
 
-        const newCredits = gameState.player.credits - newExpense.amount;
+        // Only deduct credits for ONE_TIME expenses
+        // RECURRING expenses are paid manually via payExpense
+        if (newExpense.type === 'ONE_TIME') {
+            const newCredits = gameState.player.credits - newExpense.amount;
 
-        // Update Profile
-        const { stats: _, ...pData } = gameState.player;
-        await dbService.upsertDocument(user.uid, "profile", {
-            ...pData,
-            id: 'data',
-            credits: newCredits
-        });
+            // Update Profile
+            const { stats: _, ...pData } = gameState.player;
+            await dbService.upsertDocument(user.uid, "profile", {
+                ...pData,
+                id: 'data',
+                credits: newCredits
+            });
 
-        // Add to Economy (if recurring)
-        if (newExpense.type === 'RECURRING') {
+            // Add to Ledger (transaction history)
+            await dbService.upsertDocument(user.uid, "ledger", newExpense);
+
+            addLog(`Expense Logged: ${newExpense.name} (-${newExpense.amount} Credits)`, 'WARNING');
+            addNotification(`EXPENSE LOGGED: -${newExpense.amount} Credits`, 'INFO');
+        } else if (newExpense.type === 'RECURRING') {
+            // Add to Economy list only (no credit deduction)
             await dbService.upsertDocument(user.uid, "economy", newExpense);
+            addLog(`Recurring Expense Added: ${newExpense.name} (${newExpense.frequency})`, 'INFO');
+            addNotification(`RECURRING EXPENSE ADDED: ${newExpense.name}`, 'INFO');
         }
-
-        // Add to Ledger
-        await dbService.upsertDocument(user.uid, "ledger", newExpense);
-
-        addLog(`Expense Logged: ${newExpense.name} (-${newExpense.amount} Credits)`, 'WARNING');
-        addNotification(`EXPENSE LOGGED: -${newExpense.amount} Credits`, 'INFO');
     }, [user, gameState.player, addLog, addNotification]);
 
     const payExpense = useCallback(async (expenseId: string) => {
