@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { syncSubscription } from '../firebase/db';
+import { syncSubscription, saveSubscription } from '../firebase/db';
 import { RAZORPAY_KEY_ID, SUBSCRIPTION_PLANS, isSubscriptionActive, type SubscriptionStatus } from '../config/subscription';
 
 declare global {
@@ -63,17 +63,28 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
             theme: {
                 color: '#06b6d4' // Cyan theme
             },
-            handler: function (response: any) {
-                // Payment successful - webhook will update Firestore
-                // Show a pending state while webhook processes
+            handler: async function (response: any) {
+                // Payment successful - save directly to Firestore
                 console.log('Payment successful:', response);
-                setSubscription(prev => prev ? { ...prev, status: 'pending' } : {
+
+                const startDate = new Date();
+                const endDate = new Date();
+                endDate.setMonth(endDate.getMonth() + 1);
+
+                const subscriptionData: SubscriptionStatus = {
                     planId: plan.id,
-                    status: 'pending',
-                    startDate: new Date().toISOString(),
-                    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                    razorpayPaymentId: response.razorpay_payment_id
-                });
+                    status: 'active',
+                    startDate: startDate.toISOString(),
+                    endDate: endDate.toISOString(),
+                    razorpayPaymentId: response.razorpay_payment_id,
+                    razorpayOrderId: response.razorpay_order_id || '',
+                    amount: plan.price,
+                    email: user.email || ''
+                };
+
+                // Save to Firestore
+                await saveSubscription(user.uid, subscriptionData);
+                setSubscription(subscriptionData);
             },
             modal: {
                 ondismiss: function () {
@@ -107,3 +118,4 @@ export const useSubscription = () => {
     }
     return context;
 };
+

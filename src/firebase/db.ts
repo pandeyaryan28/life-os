@@ -279,3 +279,18 @@ export const syncSubscription = (
         callback(null);
     });
 };
+
+export const saveSubscription = async (
+    userId: string,
+    subscriptionData: SubscriptionStatus
+): Promise<void> => {
+    const subscriptionRef = doc(db, USERS_COLLECTION, userId, "subscription", "status");
+
+    await setDoc(subscriptionRef, {
+        ...subscriptionData,
+        updatedAt: serverTimestamp()
+    });
+
+    console.log('💳 Subscription saved for user:', userId);
+};
+

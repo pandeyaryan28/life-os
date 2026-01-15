@@ -11,6 +11,7 @@ import { ExpensesPanel } from './ExpensesPanel';
 import { ManualAdjustmentPanel } from './ManualAdjustmentPanel';
 import { GoalsPanel } from './GoalsPanel';
 import { MigrationModal } from './MigrationModal';
+import { SubscribeBanner } from './SubscribeBanner';
 import { Terminal, Settings as SettingsIcon, BarChart3, RefreshCw, XCircle, Calendar as CalendarIcon, Cloud, BookOpen } from 'lucide-react';
 import { SystemGuide } from './SystemGuide';
 
@@ -65,7 +66,8 @@ export const Dashboard: React.FC = () => {
                 </div>
             )}
 
-
+            {/* Subscribe Banner for non-subscribers */}
+            <SubscribeBanner />
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 h-full pb-6">
                 {/* Column 1: Identity & Penalties */}
