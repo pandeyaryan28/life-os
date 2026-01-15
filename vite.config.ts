@@ -37,4 +37,12 @@ export default defineConfig({
       }
     })
   ],
+  // Fix 404 on hard refresh for SPA
+  server: {
+    historyApiFallback: true
+  },
+  preview: {
+    historyApiFallback: true
+  }
 })
+
