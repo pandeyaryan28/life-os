@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./config";
 import type { PlayerProfile, GameState } from "../types";
+import type { SubscriptionStatus } from "../config/subscription";
 
 const USERS_COLLECTION = "users";
 
@@ -246,4 +247,35 @@ export const migrateLocalStorageToFirestore = async (userId: string, gameState: 
     });
 
     await batch.commit();
+};
+
+// ==================== SUBSCRIPTION SYSTEM ====================
+
+export const syncSubscription = (
+    userId: string,
+    callback: (subscription: SubscriptionStatus | null) => void
+) => {
+    const subscriptionRef = doc(db, USERS_COLLECTION, userId, "subscription", "status");
+
+    return onSnapshot(subscriptionRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+            const data = docSnapshot.data();
+            callback({
+                planId: data.planId || '',
+                status: data.status || 'expired',
+                startDate: data.startDate || '',
+                endDate: data.endDate || '',
+                razorpayPaymentId: data.razorpayPaymentId,
+                razorpayOrderId: data.razorpayOrderId,
+                razorpaySubscriptionId: data.razorpaySubscriptionId,
+                amount: data.amount,
+                email: data.email
+            } as SubscriptionStatus);
+        } else {
+            callback(null);
+        }
+    }, (error) => {
+        console.error('Subscription sync error:', error);
+        callback(null);
+    });
 };
