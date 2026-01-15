@@ -14,6 +14,11 @@ interface SubscriptionContextType {
     isSubscribed: boolean;
     isLoading: boolean;
     initiatePayment: () => Promise<void>;
+    // Feature gating
+    showSubscribeModal: boolean;
+    subscribeModalFeature: string;
+    requireSubscription: (featureName: string) => boolean;
+    closeSubscribeModal: () => void;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -22,6 +27,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const { user } = useAuth();
     const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+    const [subscribeModalFeature, setSubscribeModalFeature] = useState('');
 
     // Sync subscription status from Firestore
     useEffect(() => {
@@ -85,6 +92,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 // Save to Firestore
                 await saveSubscription(user.uid, subscriptionData);
                 setSubscription(subscriptionData);
+                setShowSubscribeModal(false);
             },
             modal: {
                 ondismiss: function () {
@@ -99,12 +107,29 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const isSubscribed = isSubscriptionActive(subscription);
 
+    // Check if user can use feature, show modal if not subscribed
+    const requireSubscription = useCallback((featureName: string): boolean => {
+        if (isSubscribed) return true;
+        setSubscribeModalFeature(featureName);
+        setShowSubscribeModal(true);
+        return false;
+    }, [isSubscribed]);
+
+    const closeSubscribeModal = useCallback(() => {
+        setShowSubscribeModal(false);
+        setSubscribeModalFeature('');
+    }, []);
+
     return (
         <SubscriptionContext.Provider value={{
             subscription,
             isSubscribed,
             isLoading,
-            initiatePayment
+            initiatePayment,
+            showSubscribeModal,
+            subscribeModalFeature,
+            requireSubscription,
+            closeSubscribeModal
         }}>
             {children}
         </SubscriptionContext.Provider>
@@ -118,4 +143,5 @@ export const useSubscription = () => {
     }
     return context;
 };
+
 

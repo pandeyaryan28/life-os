@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGameEngine } from '../hooks/useGameEngine';
+import { useSubscription } from '../context/SubscriptionContext';
 import { Layout } from './Layout';
 import { StatusWindow } from './StatusWindow';
 import { QuestLog } from './QuestLog';
@@ -12,6 +13,7 @@ import { ManualAdjustmentPanel } from './ManualAdjustmentPanel';
 import { GoalsPanel } from './GoalsPanel';
 import { MigrationModal } from './MigrationModal';
 import { SubscribeBanner } from './SubscribeBanner';
+import { SubscribeModal } from './SubscribeModal';
 import { Terminal, Settings as SettingsIcon, BarChart3, RefreshCw, XCircle, Calendar as CalendarIcon, Cloud, BookOpen } from 'lucide-react';
 import { SystemGuide } from './SystemGuide';
 
@@ -38,6 +40,8 @@ export const Dashboard: React.FC = () => {
         deleteGoal
     } = useGameEngine();
 
+    const { requireSubscription, showSubscribeModal, subscribeModalFeature, closeSubscribeModal } = useSubscription();
+
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [preSelectedGoalId, setPreSelectedGoalId] = useState<string | undefined>(undefined);
     const [isStageOverviewOpen, setIsStageOverviewOpen] = useState(false);
@@ -45,9 +49,59 @@ export const Dashboard: React.FC = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isGuideOpen, setIsGuideOpen] = useState(false);
 
+    // Wrap actions with subscription check
+    const gatedAddQuest = (questData: Parameters<typeof addQuest>[0]) => {
+        if (requireSubscription('Create Quest')) {
+            addQuest(questData);
+        }
+    };
+
+    const gatedCompleteQuest = (questId: string) => {
+        if (requireSubscription('Complete Quest')) {
+            completeQuest(questId);
+        }
+    };
+
+    const gatedFailQuest = (questId: string) => {
+        if (requireSubscription('Fail Quest')) {
+            failQuest(questId);
+        }
+    };
+
+    const gatedAddGoal = (goalData: Parameters<typeof addGoal>[0]) => {
+        if (requireSubscription('Create Goal')) {
+            addGoal(goalData);
+        }
+    };
+
+    const gatedAddExpense = (expenseData: Parameters<typeof addExpense>[0]) => {
+        if (requireSubscription('Add Expense')) {
+            addExpense(expenseData);
+        }
+    };
+
+    const gatedApplyAdjustment = (adj: Parameters<typeof applyManualAdjustment>[0]) => {
+        if (requireSubscription('Apply Adjustment')) {
+            applyManualAdjustment(adj);
+        }
+    };
+
+    const gatedPayExpense = (expenseId: string) => {
+        if (requireSubscription('Pay Expense')) {
+            payExpense(expenseId);
+        }
+    };
+
     return (
         <Layout>
             <SystemOverlay notifications={notifications} />
+
+            {/* Subscribe Modal for feature gating */}
+            <SubscribeModal
+                isOpen={showSubscribeModal}
+                onClose={closeSubscribeModal}
+                featureName={subscribeModalFeature}
+            />
 
             <MigrationModal
                 isOpen={isMigrationPending}
@@ -79,7 +133,7 @@ export const Dashboard: React.FC = () => {
                     <div className="flex-1 min-h-[300px]">
                         <ManualAdjustmentPanel
                             history={gameState.manualAdjustments}
-                            onApplyAdjustment={applyManualAdjustment}
+                            onApplyAdjustment={gatedApplyAdjustment}
                         />
                     </div>
                 </div>
@@ -90,24 +144,30 @@ export const Dashboard: React.FC = () => {
                         <GoalsPanel
                             goals={gameState.goals}
                             quests={gameState.quests}
-                            onAddGoal={addGoal}
+                            onAddGoal={gatedAddGoal}
                             onLinkQuest={linkQuestToGoal}
                             onUnlinkQuest={unlinkQuestFromGoal}
                             onDeleteGoal={deleteGoal}
                             onDeleteQuest={deleteQuest}
                             onTriggerNewQuest={(goalId) => {
-                                setPreSelectedGoalId(goalId);
-                                setIsCreateModalOpen(true);
+                                if (requireSubscription('Create Quest')) {
+                                    setPreSelectedGoalId(goalId);
+                                    setIsCreateModalOpen(true);
+                                }
                             }}
                         />
                     </div>
                     <div className="h-[60%] min-h-[400px]">
                         <QuestLog
                             quests={gameState.quests}
-                            onComplete={completeQuest}
-                            onFail={failQuest}
+                            onComplete={gatedCompleteQuest}
+                            onFail={gatedFailQuest}
                             onDelete={deleteQuest}
-                            onCreateQuest={() => setIsCreateModalOpen(true)}
+                            onCreateQuest={() => {
+                                if (requireSubscription('Create Quest')) {
+                                    setIsCreateModalOpen(true);
+                                }
+                            }}
                         />
                     </div>
                 </div>
@@ -119,8 +179,8 @@ export const Dashboard: React.FC = () => {
                             credits={gameState.player.credits}
                             expenseHistory={gameState.expenseHistory}
                             recurringExpenses={gameState.expenses}
-                            onAddExpense={addExpense}
-                            onPayExpense={payExpense}
+                            onAddExpense={gatedAddExpense}
+                            onPayExpense={gatedPayExpense}
                         />
                     </div>
 
@@ -208,7 +268,7 @@ export const Dashboard: React.FC = () => {
                     setIsCreateModalOpen(false);
                     setPreSelectedGoalId(undefined);
                 }}
-                onCreateQuest={addQuest}
+                onCreateQuest={gatedAddQuest}
                 goals={gameState.goals}
                 initialGoalId={preSelectedGoalId}
             />
@@ -234,4 +294,3 @@ export const Dashboard: React.FC = () => {
         </Layout>
     );
 };
-
