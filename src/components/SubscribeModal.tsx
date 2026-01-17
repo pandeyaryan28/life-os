@@ -10,7 +10,7 @@ interface SubscribeModalProps {
 }
 
 export const SubscribeModal: React.FC<SubscribeModalProps> = ({ isOpen, onClose, featureName }) => {
-    const { initiatePayment, subscription, currency, setCurrency } = useSubscription();
+    const { initiatePayment, subscription, currency } = useSubscription();
     const isPending = subscription?.status === 'pending';
 
     if (!isOpen) return null;
@@ -60,30 +60,6 @@ export const SubscribeModal: React.FC<SubscribeModalProps> = ({ isOpen, onClose,
                             </p>
                         </div>
 
-                        {/* Currency Toggle */}
-                        <div className="flex justify-center mb-6">
-                            <div className="inline-flex bg-gray-800/50 rounded-lg p-1 border border-gray-700/50">
-                                <button
-                                    onClick={() => setCurrency('INR')}
-                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${currency === 'INR'
-                                            ? 'bg-cyan-500 text-white'
-                                            : 'text-gray-400 hover:text-white'
-                                        }`}
-                                >
-                                    🇮🇳 INR
-                                </button>
-                                <button
-                                    onClick={() => setCurrency('USD')}
-                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${currency === 'USD'
-                                            ? 'bg-cyan-500 text-white'
-                                            : 'text-gray-400 hover:text-white'
-                                        }`}
-                                >
-                                    🌍 USD
-                                </button>
-                            </div>
-                        </div>
-
                         {/* Plans */}
                         <div className="grid md:grid-cols-2 gap-4">
                             {/* Monthly Plan */}
@@ -120,13 +96,11 @@ export const SubscribeModal: React.FC<SubscribeModalProps> = ({ isOpen, onClose,
                             {/* Lifetime Plan */}
                             <div className="relative bg-gradient-to-b from-cyan-500/10 to-purple-500/10 rounded-xl p-5 border-2 border-cyan-500/50">
                                 {/* Badge */}
-                                {lifetimePlan.badge && (
-                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white whitespace-nowrap">
-                                            {lifetimePlan.badge}
-                                        </span>
-                                    </div>
-                                )}
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white whitespace-nowrap">
+                                        LIMITED OFFER
+                                    </span>
+                                </div>
                                 <div className="mb-4 pt-2">
                                     <h3 className="font-semibold text-white text-lg flex items-center gap-2">
                                         {lifetimePlan.name}
@@ -171,7 +145,7 @@ export const SubscribeModal: React.FC<SubscribeModalProps> = ({ isOpen, onClose,
                         </div>
 
                         <p className="text-center text-xs text-gray-500 mt-6">
-                            Secure payment via Razorpay • Cancel monthly anytime
+                            Secure payment via Razorpay - Cancel monthly anytime
                         </p>
                     </div>
                 </motion.div>

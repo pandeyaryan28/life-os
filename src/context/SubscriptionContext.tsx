@@ -5,9 +5,7 @@ import {
     RAZORPAY_KEY_ID,
     SUBSCRIPTION_PLANS,
     isSubscriptionActive,
-    type SubscriptionStatus,
-    type SubscriptionPlan,
-    type PlanType
+    type SubscriptionStatus
 } from '../config/subscription';
 
 declare global {
@@ -18,12 +16,25 @@ declare global {
 
 type Currency = 'INR' | 'USD';
 
+// Auto-detect currency based on timezone
+const detectCurrency = (): Currency => {
+    try {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        // India timezones
+        if (timezone.includes('Kolkata') || timezone.includes('Calcutta') || timezone.includes('Asia/Kolkata')) {
+            return 'INR';
+        }
+        return 'USD';
+    } catch {
+        return 'INR'; // Default to INR
+    }
+};
+
 interface SubscriptionContextType {
     subscription: SubscriptionStatus | null;
     isSubscribed: boolean;
     isLoading: boolean;
     currency: Currency;
-    setCurrency: (currency: Currency) => void;
     initiatePayment: (planId: string) => Promise<void>;
     // Feature gating
     showSubscribeModal: boolean;
@@ -40,7 +51,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [isLoading, setIsLoading] = useState(true);
     const [showSubscribeModal, setShowSubscribeModal] = useState(false);
     const [subscribeModalFeature, setSubscribeModalFeature] = useState('');
-    const [currency, setCurrency] = useState<Currency>('INR');
+    const [currency] = useState<Currency>(detectCurrency);
 
     // Sync subscription status from Firestore
     useEffect(() => {
@@ -158,7 +169,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
             isSubscribed,
             isLoading,
             currency,
-            setCurrency,
             initiatePayment,
             showSubscribeModal,
             subscribeModalFeature,

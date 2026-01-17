@@ -5,7 +5,7 @@ import { useSubscription } from '../context/SubscriptionContext';
 import { SUBSCRIPTION_PLANS, formatPrice } from '../config/subscription';
 
 export const SubscribeBanner: React.FC = () => {
-    const { isSubscribed, initiatePayment, subscription, currency, setCurrency } = useSubscription();
+    const { isSubscribed, initiatePayment, subscription, currency } = useSubscription();
     const [isDismissed, setIsDismissed] = useState(false);
 
     const lifetimePlan = SUBSCRIPTION_PLANS.find(p => p.id === 'lifetime')!;
@@ -31,7 +31,7 @@ export const SubscribeBanner: React.FC = () => {
                     </div>
                     <div>
                         <h3 className="font-semibold text-white text-sm flex items-center gap-2">
-                            🔥 Limited Time Offer
+                            Limited Time Offer
                             <Sparkles className="w-4 h-4 text-yellow-400" />
                         </h3>
                         <p className="text-xs text-gray-400">
@@ -41,14 +41,6 @@ export const SubscribeBanner: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {/* Currency toggle */}
-                    <button
-                        onClick={() => setCurrency(currency === 'INR' ? 'USD' : 'INR')}
-                        className="px-2 py-1 rounded text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
-                    >
-                        {currency === 'INR' ? '🇮🇳' : '🌍'}
-                    </button>
-
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
