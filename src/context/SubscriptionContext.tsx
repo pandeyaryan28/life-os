@@ -1,7 +1,14 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { syncSubscription, saveSubscription } from '../firebase/db';
-import { RAZORPAY_KEY_ID, SUBSCRIPTION_PLANS, isSubscriptionActive, type SubscriptionStatus } from '../config/subscription';
+import {
+    RAZORPAY_KEY_ID,
+    SUBSCRIPTION_PLANS,
+    isSubscriptionActive,
+    type SubscriptionStatus,
+    type SubscriptionPlan,
+    type PlanType
+} from '../config/subscription';
 
 declare global {
     interface Window {
@@ -9,11 +16,15 @@ declare global {
     }
 }
 
+type Currency = 'INR' | 'USD';
+
 interface SubscriptionContextType {
     subscription: SubscriptionStatus | null;
     isSubscribed: boolean;
     isLoading: boolean;
-    initiatePayment: () => Promise<void>;
+    currency: Currency;
+    setCurrency: (currency: Currency) => void;
+    initiatePayment: (planId: string) => Promise<void>;
     // Feature gating
     showSubscribeModal: boolean;
     subscribeModalFeature: string;
@@ -29,6 +40,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [isLoading, setIsLoading] = useState(true);
     const [showSubscribeModal, setShowSubscribeModal] = useState(false);
     const [subscribeModalFeature, setSubscribeModalFeature] = useState('');
+    const [currency, setCurrency] = useState<Currency>('INR');
 
     // Sync subscription status from Firestore
     useEffect(() => {
@@ -46,22 +58,34 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return unsubscribe;
     }, [user]);
 
-    const initiatePayment = useCallback(async () => {
+    const initiatePayment = useCallback(async (planId: string) => {
         if (!user) return;
 
-        const plan = SUBSCRIPTION_PLANS[0]; // Standard plan
+        const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId);
+        if (!plan) return;
+
+        const price = plan.pricing[currency];
+        const razorpayCurrency = currency;
+
+        // For USD, Razorpay needs amount in cents (smallest unit)
+        // For INR, Razorpay needs amount in paise (smallest unit)
+        const amount = currency === 'INR' ? price * 100 : Math.round(price * 100);
 
         const options = {
             key: RAZORPAY_KEY_ID,
-            amount: plan.price * 100, // Amount in paise
-            currency: plan.currency,
+            amount: amount,
+            currency: razorpayCurrency,
             name: 'Life OS',
-            description: `${plan.name} Plan - Monthly Subscription`,
+            description: plan.type === 'lifetime'
+                ? 'Lifetime Pass - One-time Payment'
+                : `${plan.name} - Monthly Subscription`,
             image: '/icon-192.png',
             notes: {
                 userId: user.uid,
                 planId: plan.id,
-                userEmail: user.email || ''
+                planType: plan.type,
+                userEmail: user.email || '',
+                currency: currency
             },
             prefill: {
                 email: user.email || '',
@@ -76,16 +100,24 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
                 const startDate = new Date();
                 const endDate = new Date();
-                endDate.setMonth(endDate.getMonth() + 1);
+
+                // Lifetime = 100 years, Monthly = 1 month
+                if (plan.type === 'lifetime') {
+                    endDate.setFullYear(endDate.getFullYear() + 100);
+                } else {
+                    endDate.setMonth(endDate.getMonth() + 1);
+                }
 
                 const subscriptionData: SubscriptionStatus = {
                     planId: plan.id,
+                    planType: plan.type,
                     status: 'active',
                     startDate: startDate.toISOString(),
                     endDate: endDate.toISOString(),
                     razorpayPaymentId: response.razorpay_payment_id,
                     razorpayOrderId: response.razorpay_order_id || '',
-                    amount: plan.price,
+                    amount: price,
+                    currency: currency,
                     email: user.email || ''
                 };
 
@@ -103,7 +135,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         const razorpay = new window.Razorpay(options);
         razorpay.open();
-    }, [user]);
+    }, [user, currency]);
 
     const isSubscribed = isSubscriptionActive(subscription);
 
@@ -125,6 +157,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
             subscription,
             isSubscribed,
             isLoading,
+            currency,
+            setCurrency,
             initiatePayment,
             showSubscribeModal,
             subscribeModalFeature,
@@ -143,5 +177,3 @@ export const useSubscription = () => {
     }
     return context;
 };
-
-

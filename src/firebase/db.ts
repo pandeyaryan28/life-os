@@ -262,6 +262,7 @@ export const syncSubscription = (
             const data = docSnapshot.data();
             callback({
                 planId: data.planId || '',
+                planType: data.planType || 'monthly',
                 status: data.status || 'expired',
                 startDate: data.startDate || '',
                 endDate: data.endDate || '',
@@ -269,6 +270,7 @@ export const syncSubscription = (
                 razorpayOrderId: data.razorpayOrderId,
                 razorpaySubscriptionId: data.razorpaySubscriptionId,
                 amount: data.amount,
+                currency: data.currency,
                 email: data.email
             } as SubscriptionStatus);
         } else {
