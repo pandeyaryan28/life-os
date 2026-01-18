@@ -1,7 +1,7 @@
 {
   "name": "life-os",
   "private": true,
-  "version": "1.5.35",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
