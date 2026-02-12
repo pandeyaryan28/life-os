@@ -102,10 +102,13 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash].[ext]',
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-firebase-core': ['firebase/app', 'firebase/auth'],
-          'vendor-firebase-firestore': ['firebase/firestore'],
-          'vendor-firebase-analytics': ['firebase/analytics'],
-          'vendor-ui': ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge']
+          'firebase-app': ['firebase/app'],
+          'firebase-auth': ['firebase/auth'],
+          'firebase-firestore': ['firebase/firestore'],
+          'firebase-analytics': ['firebase/analytics'],
+          'framer-motion': ['framer-motion'],
+          'lucide-icons': ['lucide-react'],
+          'ui-utils': ['clsx', 'tailwind-merge']
         }
       }
     }

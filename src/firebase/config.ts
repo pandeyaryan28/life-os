@@ -34,16 +34,29 @@ export const getApp = (): FirebaseApp => {
 
 export const getAuthService = async (): Promise<Auth> => {
     if (!authInstance) {
-        const { getAuth } = await import("firebase/auth");
-        authInstance = getAuth(getApp());
+        // High-priority for user session
+        const { getAuth, setPersistence, browserLocalPersistence } = await import("firebase/auth");
+        const instance = getAuth(getApp());
+        await setPersistence(instance, browserLocalPersistence);
+        authInstance = instance;
     }
     return authInstance;
 };
 
 export const getFirestoreService = async (): Promise<Firestore> => {
     if (!dbInstance) {
-        const { getFirestore } = await import("firebase/firestore");
-        dbInstance = getFirestore(getApp());
+        // Firestore is heavy, load only when needed
+        const { getFirestore, enableIndexedDbPersistence } = await import("firebase/firestore");
+        const instance = getFirestore(getApp());
+
+        // Optional: Enable offline persistence for better mobile UX
+        try {
+            await enableIndexedDbPersistence(instance);
+        } catch (err) {
+            console.warn("Firestore persistence failed:", err);
+        }
+
+        dbInstance = instance;
     }
     return dbInstance;
 };
@@ -73,20 +86,22 @@ export const initAnalytics = async (): Promise<Analytics | null> => {
 // Start Analytics only during idle time to maximize TTI
 if (typeof window !== 'undefined') {
     const w = window as any;
-    const startAnalytics = () => {
-        void initAnalytics();
+
+    const delayedInit = () => {
+        // Only trigger initialization after the main thread is free
+        if ('requestIdleCallback' in w) {
+            w.requestIdleCallback(() => void initAnalytics(), { timeout: 15000 });
+        } else {
+            setTimeout(() => void initAnalytics(), 10000);
+        }
     };
 
-    if ('requestIdleCallback' in w) {
-        w.requestIdleCallback(() => void initAnalytics(), { timeout: 10000 });
+    if (document.readyState === 'complete') {
+        delayedInit();
     } else {
-        w.addEventListener('load', startAnalytics, { once: true });
+        window.addEventListener('load', delayedInit, { once: true });
     }
 }
 
-// Export legacy-compatible getters to avoid breaking imports immediately
-// but update them to use the lazy system. Note: these will be used by 
-// top-level imports and might still trigger some bundling, but helps migration.
-export const app = getApp();
-// auth and db cannot be exported as constants now if we want true lazy route-level splitting
-// we will update db.ts and AuthContext.tsx to use the new getters.
+// Removed legacy exports that trigger early bundling
+// Use getApp(), getAuthService(), getFirestoreService() instead.

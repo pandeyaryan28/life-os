@@ -1,15 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-    onAuthStateChanged,
-    signInAnonymously,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    signInWithPopup,
-    GoogleAuthProvider,
-    signOut as firebaseSignOut,
-    type Auth,
-    type User
-} from 'firebase/auth';
+import type { User, Auth } from 'firebase/auth';
 import { getAuthService } from '../firebase/config';
 
 interface AuthContextType {
@@ -30,28 +20,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [auth, setAuth] = useState<Auth | null>(null);
 
     useEffect(() => {
-        // PERF 1.8.2: Lazy load Firebase Auth only when provider mounts
-        const initAuth = async () => {
-            const authService = await getAuthService();
-            setAuth(authService);
+        /**
+         * PERF v1.8.3: Defer Auth initialization until after first paint.
+         * This allows the app shell to render immediately without waiting for Firebase.
+         */
+        const initAuthDeferred = async () => {
+            try {
+                const [authService, { onAuthStateChanged }] = await Promise.all([
+                    getAuthService(),
+                    import("firebase/auth")
+                ]);
 
-            return onAuthStateChanged(authService, (user) => {
-                setUser(user);
+                setAuth(authService);
+
+                return onAuthStateChanged(authService, (user) => {
+                    setUser(user);
+                    setLoading(false);
+                });
+            } catch (err) {
+                console.error("Auth init failed:", err);
                 setLoading(false);
-            });
+            }
         };
 
-        const authPromise = initAuth();
+        let unsubscribe: (() => void) | undefined;
+
+        // Use requestIdleCallback to avoid blocking the main thread during initial load
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(() => {
+                initAuthDeferred().then(unsub => {
+                    if (unsub) unsubscribe = unsub;
+                });
+            });
+        } else {
+            // Fallback for older browsers
+            setTimeout(() => {
+                initAuthDeferred().then(unsub => {
+                    if (unsub) unsubscribe = unsub;
+                });
+            }, 1000);
+        }
 
         return () => {
-            authPromise.then(unsubscribe => unsubscribe?.());
+            if (unsubscribe) unsubscribe();
         };
     }, []);
 
     const loginAnonymously = async () => {
-        if (!auth) throw new Error("Auth not initialized");
+        const authService = auth || await getAuthService();
+        const { signInAnonymously } = await import("firebase/auth");
         try {
-            await signInAnonymously(auth);
+            await signInAnonymously(authService);
         } catch (error) {
             console.error("Error signing in anonymously:", error);
             throw error;
@@ -59,9 +78,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const loginWithEmail = async (email: string, password: string) => {
-        if (!auth) throw new Error("Auth not initialized");
+        const authService = auth || await getAuthService();
+        const { signInWithEmailAndPassword } = await import("firebase/auth");
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            await signInWithEmailAndPassword(authService, email, password);
         } catch (error) {
             console.error("Error signing in with email:", error);
             throw error;
@@ -69,9 +89,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const registerWithEmail = async (email: string, password: string) => {
-        if (!auth) throw new Error("Auth not initialized");
+        const authService = auth || await getAuthService();
+        const { createUserWithEmailAndPassword } = await import("firebase/auth");
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
+            await createUserWithEmailAndPassword(authService, email, password);
         } catch (error) {
             console.error("Error signing up with email:", error);
             throw error;
@@ -79,10 +100,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const loginWithGoogle = async () => {
-        if (!auth) throw new Error("Auth not initialized");
+        const authService = auth || await getAuthService();
+        const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
         try {
             const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
+            await signInWithPopup(authService, provider);
         } catch (error) {
             console.error("Error signing in with Google:", error);
             throw error;
@@ -90,9 +112,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = async () => {
-        if (!auth) throw new Error("Auth not initialized");
+        const authService = auth || await getAuthService();
+        const { signOut } = await import("firebase/auth");
         try {
-            await firebaseSignOut(auth);
+            await signOut(authService);
         } catch (error) {
             console.error("Error signing out:", error);
             throw error;

@@ -24,11 +24,14 @@
 
   <link rel="manifest" href="/manifest.webmanifest" />
 
-  <!-- PRECONNECT OPTIMIZATION (v1.8.2) -->
+  <!-- PRELOAD CRITICAL RESOURCES (v1.8.3) -->
+  <link rel="preload" href="/src/main.tsx" as="script" crossorigin />
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-700-normal.woff2" as="font"
+    type="font/woff2" crossorigin />
+
+  <!-- PRECONNECT OPTIMIZATION -->
   <link rel="preconnect" href="https://life-os-1e607.firebaseapp.com" crossorigin />
-  <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
-  <!-- Optimized: max 3 origins used -->
 
   <title>LIFE OS — Gamified Life Management</title>
 
@@ -39,6 +42,7 @@
       --system-blue: #00aaff;
       --system-panel: #111111;
       --system-text: #e0e0e0;
+      --system-border: #333333;
     }
 
     html,
@@ -47,33 +51,102 @@
       color: var(--system-text);
       margin: 0;
       padding: 0;
-      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-display: swap;
       overflow: hidden;
       height: 100%;
       width: 100%;
     }
 
-    #root {
-      height: 100%;
+    /* APP SHELL STYLES */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100%;
+      opacity: 0;
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    .shell-header {
+      height: 60px;
+      border-bottom: 1px solid var(--system-border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      background: rgba(10, 10, 11, 0.8);
+      backdrop-filter: blur(10px);
+    }
+
+    .shell-logo {
+      font-weight: 900;
+      font-style: italic;
+      font-size: 20px;
+      letter-spacing: -1px;
+    }
+
+    .shell-logo span {
+      color: var(--system-blue);
+    }
+
+    .shell-content {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #161618 25%, #1e1e21 50%, #161618 75%);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      from {
+        background-position: 200% 0;
+      }
+
+      to {
+        background-position: -200% 0;
+      }
+    }
+
+    .skeleton-card {
+      height: 120px;
       width: 100%;
     }
 
-    .initial-load {
+    .skeleton-list {
+      flex: 1;
+      width: 100%;
+    }
+
+    #system-init-loader {
+      position: fixed;
+      inset: 0;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      z-index: 9999;
       background: var(--system-dark);
     }
 
     .load-spinner {
-      width: 40px;
-      height: 40px;
-      border: 2px solid rgba(0, 170, 255, 0.2);
+      width: 32px;
+      height: 32px;
+      border: 2px solid rgba(0, 170, 255, 0.1);
       border-top-color: var(--system-blue);
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
@@ -83,16 +156,26 @@
     }
   </style>
 
-  <!-- ASYNC CSS LOADING (v1.8.2) -->
   <script>
-    // Prevent FOUC by making sure the body is visible immediately with critical styles
-    document.documentElement.className = 'js-loading';
+    // Flag to prevent layout shift during hydration
+    window.__SHELL_LOADED__ = true;
   </script>
 </head>
 
 <body>
   <div id="root">
-    <div class="initial-load" id="system-init-loader">
+    <!-- STATIC APP SHELL (PRIORITIZED RENDER) -->
+    <div class="app-shell" id="app-shell-static">
+      <header class="shell-header">
+        <div class="shell-logo">LIFE <span>OS</span></div>
+      </header>
+      <main class="shell-content">
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-list"></div>
+      </main>
+    </div>
+
+    <div id="system-init-loader">
       <div class="load-spinner"></div>
     </div>
   </div>
