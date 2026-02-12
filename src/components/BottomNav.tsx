@@ -11,11 +11,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard />, path: '/lifeosplus/dashboard' },
-    { id: 'goals', label: 'Goals', icon: <Target />, path: '/lifeosplus/goals' },
-    { id: 'quests', label: 'Quests', icon: <Sword />, path: '/lifeosplus/quests' },
-    { id: 'economy', label: 'Economy', icon: <DollarSign />, path: '/lifeosplus/economy' },
-    { id: 'profile', label: 'Profile', icon: <User />, path: '/lifeosplus/profile' },
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard />, path: '/dashboard' },
+    { id: 'goals', label: 'Goals', icon: <Target />, path: '/goals' },
+    { id: 'quests', label: 'Quests', icon: <Sword />, path: '/quests' },
+    { id: 'economy', label: 'Economy', icon: <DollarSign />, path: '/economy' },
+    { id: 'profile', label: 'Profile', icon: <User />, path: '/profile' },
 ];
 
 export const BottomNav: React.FC = () => {

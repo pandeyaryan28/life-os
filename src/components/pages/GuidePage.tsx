@@ -19,7 +19,7 @@ export const GuidePage: React.FC = () => {
         <>
             <SystemOverlay notifications={notifications} />
             <Suspense fallback={<LazyFallback />}>
-                <SystemGuide isOpen={true} onClose={() => navigate('/lifeosplus/dashboard')} />
+                <SystemGuide isOpen={true} onClose={() => navigate('/dashboard')} />
             </Suspense>
         </>
     );

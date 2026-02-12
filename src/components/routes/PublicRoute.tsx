@@ -22,7 +22,7 @@ export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
     }
 
     if (user) {
-        return <Navigate to="/lifeosplus/dashboard" replace />;
+        return <Navigate to="/dashboard" replace />;
     }
 
     return <>{children}</>;

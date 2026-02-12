@@ -55,7 +55,7 @@ export const NotFoundPage: React.FC = () => {
 
                 {/* Action Button */}
                 <button
-                    onClick={() => navigate('/lifeosplus/dashboard')}
+                    onClick={() => navigate('/dashboard')}
                     className="inline-flex items-center gap-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-4 px-8 rounded-2xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.2)] active:scale-[0.98]"
                 >
                     <ArrowLeft className="w-5 h-5" />

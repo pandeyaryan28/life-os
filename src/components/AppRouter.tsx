@@ -19,11 +19,11 @@ export const AppRouter: React.FC = () => {
         <BrowserRouter>
             <Routes>
                 {/* Root redirect */}
-                <Route path="/" element={<Navigate to="/lifeosplus/dashboard" replace />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
                 {/* Public routes */}
                 <Route
-                    path="/lifeosplus/login"
+                    path="/login"
                     element={
                         <PublicRoute>
                             <Login />
@@ -31,7 +31,7 @@ export const AppRouter: React.FC = () => {
                     }
                 />
                 <Route
-                    path="/lifeosplus/register"
+                    path="/register"
                     element={
                         <PublicRoute>
                             <Login initialMode="REGISTER" />
@@ -49,23 +49,20 @@ export const AppRouter: React.FC = () => {
                         </ProtectedRoute>
                     }
                 >
-                    <Route path="/lifeosplus/dashboard" element={<DashboardPage />} />
-                    <Route path="/lifeosplus/goals" element={<GoalsPage />} />
-                    <Route path="/lifeosplus/quests" element={<QuestsPage />} />
-                    <Route path="/lifeosplus/economy" element={<EconomyPage />} />
-                    <Route path="/lifeosplus/profile" element={<ProfilePage />} />
-                    <Route path="/lifeosplus/system" element={<SystemPage />} />
-                    <Route path="/lifeosplus/guide" element={<GuidePage />} />
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/goals" element={<GoalsPage />} />
+                    <Route path="/quests" element={<QuestsPage />} />
+                    <Route path="/economy" element={<EconomyPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/system" element={<SystemPage />} />
+                    <Route path="/guide" element={<GuidePage />} />
                 </Route>
 
                 {/* 404 page */}
-                <Route path="/lifeosplus/404" element={<NotFoundPage />} />
+                <Route path="/404" element={<NotFoundPage />} />
 
-                {/* Catch-all: any unknown lifeosplus route → 404 */}
-                <Route path="/lifeosplus/*" element={<Navigate to="/lifeosplus/404" replace />} />
-
-                {/* Catch-all: any other unknown route → 404 */}
-                <Route path="*" element={<Navigate to="/lifeosplus/404" replace />} />
+                {/* Catch-all: any unknown route → 404 */}
+                <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
         </BrowserRouter>
     );

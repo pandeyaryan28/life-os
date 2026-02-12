@@ -25,7 +25,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     if (!user) {
         // Save attempted URL so we can redirect back after login
-        return <Navigate to="/lifeosplus/login" state={{ from: location }} replace />;
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     return <>{children}</>;

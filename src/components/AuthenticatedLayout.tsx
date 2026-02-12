@@ -42,7 +42,7 @@ export const AuthenticatedLayout: React.FC = () => {
                 {/* Header — Responsive */}
                 <header className={`flex justify-between items-center border-b border-system-border flex-shrink-0 ${isMobile ? 'py-2 mb-3' : 'py-4 mb-6'}`}>
                     <h1 className={`font-mono font-bold text-system-blue tracking-wider uppercase text-glow ${isMobile ? 'text-base' : 'text-2xl'}`}>
-                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.7.0</span>
+                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.7.1</span>
                     </h1>
                     <div className="flex gap-2 md:gap-4 items-center">
                         {/* Connection Status — Compact on mobile */}
