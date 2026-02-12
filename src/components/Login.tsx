@@ -3,12 +3,16 @@ import { useAuth } from '../context/AuthContext';
 import { Shield, Info, Mail, Globe, ArrowRight, UserCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const Login: React.FC = () => {
+interface LoginProps {
+    initialMode?: 'REGISTER';
+}
+
+export const Login: React.FC<LoginProps> = ({ initialMode }) => {
     const { signInAnonymously, signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [mode, setMode] = useState<'SELECT' | 'EMAIL' | 'ANONYMOUS'>('SELECT');
-    const [isRegistering, setIsRegistering] = useState(false);
+    const [mode, setMode] = useState<'SELECT' | 'EMAIL' | 'ANONYMOUS'>(initialMode === 'REGISTER' ? 'EMAIL' : 'SELECT');
+    const [isRegistering, setIsRegistering] = useState(initialMode === 'REGISTER');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 

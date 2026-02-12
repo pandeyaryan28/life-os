@@ -1,23 +1,27 @@
 import React from 'react';
-import { useMobileNav, type MobileTab } from '../context/MobileNavContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useMobileNav } from '../context/MobileNavContext';
 import { LayoutDashboard, Target, Sword, DollarSign, User } from 'lucide-react';
 
 interface NavItem {
-    id: MobileTab;
+    id: string;
     label: string;
     icon: React.ReactNode;
+    path: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard /> },
-    { id: 'goals', label: 'Goals', icon: <Target /> },
-    { id: 'quests', label: 'Quests', icon: <Sword /> },
-    { id: 'economy', label: 'Economy', icon: <DollarSign /> },
-    { id: 'profile', label: 'Profile', icon: <User /> },
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard />, path: '/lifeosplus/dashboard' },
+    { id: 'goals', label: 'Goals', icon: <Target />, path: '/lifeosplus/goals' },
+    { id: 'quests', label: 'Quests', icon: <Sword />, path: '/lifeosplus/quests' },
+    { id: 'economy', label: 'Economy', icon: <DollarSign />, path: '/lifeosplus/economy' },
+    { id: 'profile', label: 'Profile', icon: <User />, path: '/lifeosplus/profile' },
 ];
 
 export const BottomNav: React.FC = () => {
-    const { activeTab, setActiveTab, isMobile } = useMobileNav();
+    const { isMobile } = useMobileNav();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     if (!isMobile) return null;
 
@@ -26,10 +30,10 @@ export const BottomNav: React.FC = () => {
             {NAV_ITEMS.map(item => (
                 <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className={`bottom-nav-item ${activeTab === item.id ? 'active' : ''}`}
+                    onClick={() => navigate(item.path)}
+                    className={`bottom-nav-item ${location.pathname === item.path ? 'active' : ''}`}
                     aria-label={item.label}
-                    aria-current={activeTab === item.id ? 'page' : undefined}
+                    aria-current={location.pathname === item.path ? 'page' : undefined}
                 >
                     {item.icon}
                     <span>{item.label}</span>

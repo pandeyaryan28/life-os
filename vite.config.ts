@@ -59,7 +59,7 @@ export default defineConfig({
         background_color: '#0a0a0b',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: '/lifeosplus/dashboard',
         scope: '/',
         categories: ['productivity', 'lifestyle'],
         icons: [
