@@ -1,53 +1,59 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: null, // Defer SW registration
       includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-        // Do not cache Firebase/Firestore API calls, auth tokens, or dynamic data
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/__(\/|$)/, /\/sitemap\.xml$/, /\/robots\.txt$/],
+        // Simple regexes to avoid parsing issues
+        navigateFallbackDenylist: [
+          /^\/api/,
+          /^\/__/,
+          /\/sitemap\.xml$/,
+          /\/robots\.txt$/
+        ],
         runtimeCaching: [
           {
-            // Google Fonts stylesheets
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            urlPattern: /\.(?:js|css)$/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'google-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheName: 'static-resources',
+              expiration: { maxEntries: 60, maxAgeSeconds: 31536000 },
               cacheableResponse: { statuses: [0, 200] }
             }
           },
           {
-            // Google Fonts webfont files
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            urlPattern: /\.(?:woff|woff2|ttf|eot)$/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheName: 'font-cache',
+              expiration: { maxEntries: 20, maxAgeSeconds: 31536000 },
               cacheableResponse: { statuses: [0, 200] }
             }
           },
           {
-            // Firestore / Firebase API — network first, never permanently cache
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: { maxEntries: 30, maxAgeSeconds: 2592000 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
             urlPattern: /^https:\/\/(firestore|identitytoolkit|securetoken)\.googleapis\.com\/.*/i,
             handler: 'NetworkOnly'
           },
           {
-            // Razorpay checkout script
-            urlPattern: /^https:\/\/checkout\.razorpay\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'razorpay-cache',
-              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 }
-            }
+            urlPattern: /^https:\/\/(checkout|api)\.razorpay\.com\/.*/i,
+            handler: 'NetworkOnly'
           }
         ]
       },
@@ -82,5 +88,26 @@ export default defineConfig({
         ]
       }
     })
-  ]
-})
+  ],
+  build: {
+    target: 'es2022',
+    sourcemap: false,
+    minify: 'esbuild',
+    cssMinify: true,
+    chunkSizeWarningLimit: 200,
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-firebase-core': ['firebase/app', 'firebase/auth'],
+          'vendor-firebase-firestore': ['firebase/firestore'],
+          'vendor-firebase-analytics': ['firebase/analytics'],
+          'vendor-ui': ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge']
+        }
+      }
+    }
+  }
+});

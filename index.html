@@ -20,13 +20,17 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
     
-    <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- Preconnect — Firebase only (max 4, no Razorpay here) -->
+    <link rel="preconnect" href="https://life-os-1e607.firebaseapp.com" />
+    <link rel="preconnect" href="https://firestore.googleapis.com" />
     
     <title>LIFE OS — Gamified Life Management</title>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- 
+      PERF v1.8: Razorpay script REMOVED from global HTML.
+      It is now dynamically loaded only when payment flow is triggered.
+      Google Fonts REMOVED from critical path — fonts are now self-hosted. 
+    -->
   </head>
   <body>
     <div id="root"></div>

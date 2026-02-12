@@ -1,7 +1,7 @@
 {
   "name": "life-os",
   "private": true,
-  "version": "1.7.5",
+  "version": "1.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "clsx": "^2.1.1",
     "firebase": "^12.7.0",
     "framer-motion": "^12.24.12",

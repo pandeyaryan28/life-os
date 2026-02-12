@@ -30,6 +30,34 @@ const detectCurrency = (): Currency => {
     }
 };
 
+/**
+ * PERF v1.8: Dynamically load Razorpay SDK only when payment is triggered.
+ * This removes the 200KB+ Razorpay script from the critical rendering path.
+ * Razorpay never loads on: Login, Dashboard, Goals, Quests, Economy (until payment initiated).
+ */
+let razorpayLoadPromise: Promise<void> | null = null;
+
+const loadRazorpayScript = (): Promise<void> => {
+    // If already loaded
+    if (window.Razorpay) return Promise.resolve();
+    // If already loading
+    if (razorpayLoadPromise) return razorpayLoadPromise;
+
+    razorpayLoadPromise = new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => {
+            razorpayLoadPromise = null;
+            reject(new Error('Failed to load Razorpay SDK'));
+        };
+        document.head.appendChild(script);
+    });
+
+    return razorpayLoadPromise;
+};
+
 interface SubscriptionContextType {
     subscription: SubscriptionStatus | null;
     isSubscribed: boolean;
@@ -74,6 +102,14 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId);
         if (!plan) return;
+
+        // PERF v1.8: Load Razorpay dynamically right before payment
+        try {
+            await loadRazorpayScript();
+        } catch (error) {
+            console.error('Failed to load Razorpay:', error);
+            return;
+        }
 
         const price = plan.pricing[currency];
         const razorpayCurrency = currency;
