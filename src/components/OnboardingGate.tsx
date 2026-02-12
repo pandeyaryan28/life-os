@@ -18,7 +18,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
     // While game state is syncing, show loading
     if (user && isSyncing) {
         return (
-            <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+            <div className="min-h-[100dvh] bg-[#050505] flex items-center justify-center">
                 <div className="w-12 h-12 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
             </div>
         );

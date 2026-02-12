@@ -40,7 +40,7 @@ export const AuthenticatedLayout: React.FC = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-system-dark text-system-text font-sans selection:bg-system-blue selection:text-white overflow-hidden relative">
+        <div className="min-h-[100dvh] bg-system-dark text-system-text font-sans selection:bg-system-blue selection:text-white overflow-hidden relative">
             <a href="#main-content" className="skip-to-main">
                 Skip to Main Content
             </a>
@@ -57,11 +57,11 @@ export const AuthenticatedLayout: React.FC = () => {
                 <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-50 bg-[length:100%_2px,3px_100%] pointer-events-none opacity-20"></div>
             )}
 
-            <div className="relative z-10 container mx-auto px-3 md:px-4 h-screen flex flex-col">
+            <div className="relative z-10 container mx-auto px-3 md:px-4 h-[100dvh] flex flex-col">
                 {/* Header — Responsive */}
                 <header className={`flex justify-between items-center border-b border-system-border flex-shrink-0 ${isMobile ? 'py-2 mb-3' : 'py-4 mb-6'}`}>
                     <h1 className={`font-mono font-bold text-system-blue tracking-wider uppercase text-glow ${isMobile ? 'text-base' : 'text-2xl'}`}>
-                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.8.3</span>
+                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.8.6</span>
                     </h1>
                     <div className="flex gap-2 md:gap-4 items-center">
                         {/* Connection Status — Compact on mobile */}
@@ -99,13 +99,14 @@ export const AuthenticatedLayout: React.FC = () => {
 
                 {/*
                   Main Content Area.
-                  On mobile: pb-[100px] clears the 64px nav + safe area + breathing room.
+                  On mobile: pb-[var(--bottom-nav-height)] clears the nav.
+                  Safe area is handled by the nav itself.
                 */}
                 <main
                     id="main-content"
                     className="flex-1 overflow-y-auto overscroll-contain"
                     style={{
-                        paddingBottom: isMobile ? '100px' : '24px'
+                        paddingBottom: isMobile ? 'calc(var(--bottom-nav-height) + 12px)' : '24px'
                     }}
                 >
                     <Outlet />

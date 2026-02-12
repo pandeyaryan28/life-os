@@ -58,7 +58,7 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-4 selection:bg-cyan-500/30">
+        <div className="min-h-[100dvh] bg-[#050505] text-white flex items-center justify-center p-4 selection:bg-cyan-500/30">
             {/* Background Effects */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/10 rounded-full blur-[120px]" />

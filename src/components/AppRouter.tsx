@@ -26,7 +26,7 @@ const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ defaul
 
 /** Minimal loading spinner shown while route chunks load */
 const RouteFallback = () => (
-    <div className="flex items-center justify-center h-screen bg-system-dark">
+    <div className="flex items-center justify-center h-[100dvh] bg-system-dark">
         <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
             <span className="text-[10px] font-mono text-system-text/40 uppercase tracking-widest">Loading Module...</span>
