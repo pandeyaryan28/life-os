@@ -73,7 +73,6 @@ export const useOnlineStatus = () => {
 
 /**
  * Detect if app is running in installed/standalone mode.
- * Covers both Android (display-mode: standalone) and iOS (navigator.standalone).
  */
 function detectInstalledMode(): boolean {
     if (typeof window === 'undefined') return false;
@@ -83,31 +82,47 @@ function detectInstalledMode(): boolean {
 }
 
 /**
+ * Detect iOS (Safari) browser.
+ */
+function isIOSSafari(): boolean {
+    if (typeof navigator === 'undefined') return false;
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    // Check it's not Chrome/Firefox on iOS
+    const isSafari = !(/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua));
+    return isIOS && isSafari;
+}
+
+/**
  * Hook for PWA install prompt.
- * 
- * ALWAYS captures the beforeinstallprompt event (regardless of device type).
- * The component rendering the CTA is responsible for checking isMobile
- * to decide whether to show the UI.
- * 
- * Returns isInstallable (event captured), isInstalled (standalone mode),
- * and promptInstall function.
+ *
+ * On Android Chrome: captures beforeinstallprompt, shows "Install" button.
+ * On iOS Safari: beforeinstallprompt never fires, so we show
+ * "Add to Home Screen" instructions instead.
+ * On desktop: event is captured but InstallPrompt component gates display to mobile only.
  */
 export const useInstallPrompt = () => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isInstallable, setIsInstallable] = useState(false);
     const [isInstalled, setIsInstalled] = useState(() => detectInstalledMode());
+    const [isIOS, setIsIOS] = useState(false);
 
     useEffect(() => {
-        // If already installed, nothing to do
+        // Already running as installed app — hide everything
         if (detectInstalledMode()) {
             setIsInstalled(true);
             return;
         }
 
+        // iOS Safari: no beforeinstallprompt support, show manual instructions
+        if (isIOSSafari()) {
+            setIsIOS(true);
+            setIsInstallable(true); // Mark as installable to show the CTA
+            return;
+        }
+
         const handleBeforeInstall = (e: Event) => {
-            // Prevent Chrome's automatic mini-infobar
             e.preventDefault();
-            // Store the event so it can be triggered later
             setDeferredPrompt(e);
             setIsInstallable(true);
         };
@@ -136,5 +151,5 @@ export const useInstallPrompt = () => {
         return outcome === 'accepted';
     }, [deferredPrompt]);
 
-    return { isInstallable, isInstalled, promptInstall };
+    return { isInstallable, isInstalled, isIOS, promptInstall };
 };
