@@ -90,9 +90,10 @@ if (typeof window !== 'undefined') {
     const delayedInit = () => {
         // Only trigger initialization after the main thread is free
         if ('requestIdleCallback' in w) {
-            w.requestIdleCallback(() => void initAnalytics(), { timeout: 15000 });
+            // Aggressive delay for Analytics to ensure zero LCP interference
+            w.requestIdleCallback(() => void initAnalytics(), { timeout: 20000 });
         } else {
-            setTimeout(() => void initAnalytics(), 10000);
+            setTimeout(() => void initAnalytics(), 15000);
         }
     };
 

@@ -1,8 +1,4 @@
-/* === SELF-HOSTED FONTS (v1.8.2 perf) === */
-/* Reduced to absolute minimum for < 2 font files target */
-@import '@fontsource/inter/latin-400.css';
-@import '@fontsource/inter/latin-700.css';
-/* JetBrains 400/600/700 and Inter 600/800/900 removed to minimize bundle */
+/* === SYSTEM FONTS (Performance Optimized) === */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

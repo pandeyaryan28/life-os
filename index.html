@@ -26,12 +26,23 @@
 
   <!-- PRELOAD CRITICAL RESOURCES (v1.8.3) -->
   <link rel="preload" href="/src/main.tsx" as="script" crossorigin />
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff2" as="font"
+    type="font/woff2" crossorigin />
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-700-normal.woff2" as="font"
     type="font/woff2" crossorigin />
 
-  <!-- PRECONNECT OPTIMIZATION -->
+  <noscript>
+    <link rel="stylesheet" href="/src/index.css">
+  </noscript>
+
+  <!-- PRECONNECT OPTIMIZATION (v1.8.3) -->
   <link rel="preconnect" href="https://life-os-1e607.firebaseapp.com" crossorigin />
+  <link rel="preconnect" href="https://firebase.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://apis.google.com" crossorigin />
   <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://grainy-gradients.vercel.app" crossorigin />
+
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
   <title>LIFE OS — Gamified Life Management</title>
 
@@ -159,6 +170,14 @@
   <script>
     // Flag to prevent layout shift during hydration
     window.__SHELL_LOADED__ = true;
+
+    // Asynchronous CSS loading for non-critical styles
+    window.addEventListener('load', () => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/src/index.css';
+      document.head.appendChild(link);
+    });
   </script>
 </head>
 

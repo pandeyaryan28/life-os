@@ -46,19 +46,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let unsubscribe: (() => void) | undefined;
 
         // Use requestIdleCallback to avoid blocking the main thread during initial load
-        if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(() => {
-                initAuthDeferred().then(unsub => {
-                    if (unsub) unsubscribe = unsub;
-                });
+        const startAuth = () => {
+            initAuthDeferred().then(unsub => {
+                if (unsub) unsubscribe = unsub;
             });
+        };
+
+        const idleOptions = { timeout: 5000 };
+        const triggerAuth = () => {
+            if (unsubscribe) return;
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(startAuth, idleOptions);
+            } else {
+                setTimeout(startAuth, 2000);
+            }
+        };
+
+        // Trigger auth on idle or first interaction
+        window.addEventListener('mousedown', triggerAuth, { once: true });
+        window.addEventListener('touchstart', triggerAuth, { once: true });
+
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(startAuth, idleOptions);
         } else {
-            // Fallback for older browsers
-            setTimeout(() => {
-                initAuthDeferred().then(unsub => {
-                    if (unsub) unsubscribe = unsub;
-                });
-            }, 1000);
+            setTimeout(startAuth, 3000);
         }
 
         return () => {
