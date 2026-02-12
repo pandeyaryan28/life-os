@@ -85,7 +85,7 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
                             LIFE <span className="text-cyan-500">OS</span>
                         </h1>
                         <div className="h-[1px] w-12 bg-cyan-500/30 mb-3" />
-                        <p className="text-gray-400 text-sm max-w-[280px]">Establish your interface within the neural persistence layer.</p>
+                        <p className="text-gray-300 text-sm max-w-[280px]">Establish your interface within the neural persistence layer.</p>
                     </div>
 
                     <AnimatePresence mode="wait">
@@ -133,7 +133,7 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
                                     <div className="absolute inset-0 flex items-center">
                                         <div className="w-full border-t border-white/5"></div>
                                     </div>
-                                    <div className="relative flex justify-center text-[10px] uppercase tracking-[0.3em] text-gray-600 font-bold bg-[#111] px-4">
+                                    <div className="relative flex justify-center text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold bg-[#111] px-4">
                                         Legacy Port
                                     </div>
                                 </div>
@@ -146,7 +146,7 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
                                     <UserCircle2 className="w-5 h-5 group-hover:animate-pulse" />
                                     <span>Quick Start Protocol</span>
                                 </button>
-                                <p className="text-[10px] text-center text-gray-500 mt-4 leading-relaxed tracking-wider italic">
+                                <p className="text-[10px] text-center text-gray-400 mt-4 leading-relaxed tracking-wider italic">
                                     Recommended: Neural accounts provide device-agnostic synchronisation.
                                 </p>
                             </motion.div>
@@ -162,25 +162,29 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
                                 <form onSubmit={handleEmailAuth} className="space-y-4">
                                     <div className="space-y-4">
                                         <div className="relative">
-                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                            <label htmlFor="email" className="sr-only">Email</label>
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                             <input
+                                                id="email"
                                                 type="email"
                                                 placeholder="Neural Identifier"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 required
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-600"
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-500"
                                             />
                                         </div>
                                         <div className="relative">
-                                            <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                            <label htmlFor="password" className="sr-only">Password</label>
+                                            <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                             <input
+                                                id="password"
                                                 type="password"
                                                 placeholder="Interface Access Key"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
                                                 required
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-600"
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-500"
                                             />
                                         </div>
                                     </div>
@@ -204,14 +208,14 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
                                         <button
                                             type="button"
                                             onClick={() => setIsRegistering(!isRegistering)}
-                                            className="text-[10px] text-gray-500 hover:text-cyan-400 transition-colors uppercase tracking-widest font-bold"
+                                            className="text-[10px] text-gray-400 hover:text-cyan-400 transition-colors uppercase tracking-widest font-bold"
                                         >
                                             {isRegistering ? 'Switch to authentication' : 'Switch to registration protocol'}
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setMode('SELECT')}
-                                            className="text-[10px] text-gray-400 hover:text-white transition-colors uppercase tracking-[0.2em] font-medium"
+                                            className="text-[10px] text-gray-300 hover:text-white transition-colors uppercase tracking-[0.2em] font-medium"
                                         >
                                             Return to Uplink
                                         </button>
@@ -233,7 +237,7 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
                                         <UserCircle2 className="w-6 h-6 text-cyan-400" />
                                     </div>
                                     <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-widest">Protocol Breakdown</h3>
-                                    <p className="text-xs text-gray-500 leading-relaxed">
+                                    <p className="text-xs text-gray-400 leading-relaxed">
                                         Initializes an ephemeral session linked to this browser only. Data will not persist across different neural nodes (devices).
                                     </p>
                                 </div>
@@ -252,7 +256,7 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
 
                                 <button
                                     onClick={() => setMode('SELECT')}
-                                    className="mt-6 text-[10px] text-gray-400 hover:text-white transition-colors uppercase tracking-[0.2em] font-bold"
+                                    className="mt-6 text-[10px] text-gray-300 hover:text-white transition-colors uppercase tracking-[0.2em] font-bold"
                                 >
                                     Return to Uplink
                                 </button>
@@ -265,11 +269,11 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
-                            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Master Node: Active</span>
+                            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Master Node: Active</span>
                         </div>
-                        <span className="text-[10px] font-mono text-gray-600 uppercase">v1.7.5</span>
+                        <span className="text-[10px] font-mono text-gray-400 uppercase">v1.8.1</span>
                     </div>
-                    <div className="flex justify-center items-center gap-4 text-[10px] font-mono text-gray-600 uppercase tracking-widest">
+                    <div className="flex justify-center items-center gap-4 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
                         <a href="/support" className="hover:text-cyan-400 transition-colors">Support</a>
                         <span className="text-white/10">|</span>
                         <a href="/privacy" className="hover:text-cyan-400 transition-colors">Privacy</a>

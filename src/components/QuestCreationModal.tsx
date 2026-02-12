@@ -101,10 +101,15 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center md:p-4 bg-black/80 backdrop-blur-sm">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center md:p-4 bg-black/80 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+        >
             <div className="bg-system-panel border-2 border-system-blue w-full h-full md:h-auto md:max-w-lg md:max-h-[90vh] shadow-[0_0_30px_rgba(0,170,255,0.2)] overflow-hidden flex flex-col">
                 <div className="flex justify-between items-center p-4 border-b border-system-blue/30 bg-system-blue/5 flex-shrink-0">
-                    <h2 className="text-base md:text-xl font-bold text-white tracking-widest uppercase flex items-center gap-2">
+                    <h2 id="modal-title" className="text-base md:text-xl font-bold text-white tracking-widest uppercase flex items-center gap-2">
                         <Plus size={20} className="text-system-blue" />
                         Initialize New Quest
                     </h2>
@@ -118,8 +123,9 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                     {/* Basic Info */}
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs font-mono text-system-blue uppercase mb-1">Quest Title</label>
+                            <label htmlFor="quest-title" className="block text-xs font-mono text-system-blue uppercase mb-1">Quest Title</label>
                             <input
+                                id="quest-title"
                                 required
                                 value={title}
                                 onChange={e => setTitle(e.target.value)}
@@ -129,8 +135,9 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                         </div>
 
                         <div>
-                            <label className="block text-xs font-mono text-system-blue uppercase mb-1">Description (Optional)</label>
+                            <label htmlFor="quest-desc" className="block text-xs font-mono text-system-blue uppercase mb-1">Description (Optional)</label>
                             <textarea
+                                id="quest-desc"
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
                                 className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors h-20 resize-none text-sm"
@@ -140,8 +147,9 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
 
                         <div className="grid grid-cols-2 gap-3 md:gap-4">
                             <div>
-                                <label className="block text-xs font-mono text-system-blue uppercase mb-1">Type</label>
+                                <label htmlFor="quest-type" className="block text-xs font-mono text-system-blue uppercase mb-1">Type</label>
                                 <select
+                                    id="quest-type"
                                     value={type}
                                     onChange={e => setType(e.target.value as QuestType)}
                                     className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors text-sm"
@@ -152,8 +160,9 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-mono text-system-blue uppercase mb-1">Rank</label>
+                                <label htmlFor="quest-rank" className="block text-xs font-mono text-system-blue uppercase mb-1">Rank</label>
                                 <select
+                                    id="quest-rank"
                                     value={difficulty}
                                     onChange={e => setDifficulty(e.target.value as Quest['difficulty'])}
                                     className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors text-sm"
@@ -168,8 +177,9 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                         {/* Goal Link Selection & Deadline */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                             <div>
-                                <label className="block text-xs font-mono text-system-blue uppercase mb-1">Link to Goal (Optional)</label>
+                                <label htmlFor="quest-goal" className="block text-xs font-mono text-system-blue uppercase mb-1">Link to Goal (Optional)</label>
                                 <select
+                                    id="quest-goal"
                                     value={selectedGoalId}
                                     onChange={e => setSelectedGoalId(e.target.value)}
                                     className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors text-sm"
@@ -183,8 +193,9 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-mono text-system-blue uppercase mb-1">Deadline (Optional)</label>
+                                <label htmlFor="quest-deadline" className="block text-xs font-mono text-system-blue uppercase mb-1">Deadline (Optional)</label>
                                 <input
+                                    id="quest-deadline"
                                     type="datetime-local"
                                     value={deadline}
                                     onChange={e => setDeadline(e.target.value)}

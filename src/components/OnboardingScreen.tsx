@@ -44,20 +44,21 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                         <h1 className="text-3xl font-black tracking-tighter mb-2 font-mono italic">
                             IDENTITY <span className="text-cyan-500">SETUP</span>
                         </h1>
-                        <p className="text-gray-400 text-xs uppercase tracking-widest font-mono">Initialize your neural identifier</p>
+                        <p className="text-gray-300 text-[10px] uppercase tracking-[0.2em] font-mono font-bold">Initialize your neural identifier</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-[10px] font-mono text-cyan-500 uppercase mb-2 tracking-widest px-1">First Name (Mandatory)</label>
+                                <label htmlFor="onboarding-first-name" className="block text-[10px] font-mono text-cyan-500 uppercase mb-2 tracking-widest px-1 font-bold">First Name (Mandatory)</label>
                                 <div className="relative">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <input
+                                        id="onboarding-first-name"
                                         required
                                         value={firstName}
                                         onChange={e => setFirstName(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all font-mono"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all font-mono placeholder:text-gray-500"
                                         placeholder="e.g. Aryan"
                                     />
                                 </div>
@@ -65,31 +66,34 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-mono text-gray-500 uppercase mb-2 tracking-widest px-1">Last Name</label>
+                                    <label htmlFor="onboarding-last-name" className="block text-[10px] font-mono text-gray-300 uppercase mb-2 tracking-widest px-1">Last Name</label>
                                     <input
+                                        id="onboarding-last-name"
                                         value={lastName}
                                         onChange={e => setLastName(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all font-mono"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all font-mono placeholder:text-gray-500"
                                         placeholder="Optional"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-mono text-gray-500 uppercase mb-2 tracking-widest px-1">Age</label>
+                                    <label htmlFor="onboarding-age" className="block text-[10px] font-mono text-gray-300 uppercase mb-2 tracking-widest px-1">Age</label>
                                     <input
+                                        id="onboarding-age"
                                         type="number"
                                         value={age}
                                         onChange={e => setAge(e.target.value === '' ? '' : parseInt(e.target.value))}
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all font-mono"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-sm focus:outline-none focus:border-cyan-500/50 transition-all font-mono placeholder:text-gray-500"
                                         placeholder="Optional"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-mono text-gray-500 uppercase mb-2 tracking-widest px-1">Timezone</label>
+                                <label htmlFor="onboarding-timezone" className="block text-[10px] font-mono text-gray-300 uppercase mb-2 tracking-widest px-1">Timezone</label>
                                 <div className="relative">
-                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <input
+                                        id="onboarding-timezone"
                                         value={timezone}
                                         onChange={e => setTimezone(e.target.value)}
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-xs focus:outline-none focus:border-cyan-500/50 transition-all font-mono"
@@ -108,7 +112,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-white/5">
-                        <div className="flex items-center gap-3 text-[9px] text-gray-500 font-mono leading-relaxed">
+                        <div className="flex items-center gap-3 text-[10px] text-gray-400 font-mono leading-relaxed">
                             <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/50" />
                             <span>Identity data is stored in the neural persistence layer (Firestore). No gamification of identity fields.</span>
                         </div>

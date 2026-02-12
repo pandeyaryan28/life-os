@@ -25,9 +25,9 @@ const StatRow: React.FC<{ label: string; value: number; icon: React.ReactNode }>
 
     return (
         <div className="flex items-center justify-between py-2 border-b border-system-border/30 last:border-0 group">
-            <div className="flex items-center gap-2 text-system-text/80">
-                <span className="text-system-blue group-hover:text-white transition-colors">{icon}</span>
-                <span className="font-mono text-[11px] uppercase tracking-wider">{label}</span>
+            <div className="flex items-center gap-2 text-system-text/90">
+                <span className="text-system-blue group-hover:text-blue-400 transition-colors">{icon}</span>
+                <span className="font-mono text-xs uppercase tracking-wider">{label}</span>
             </div>
             <div className="flex items-center gap-3">
                 <AnimatePresence>
@@ -36,7 +36,7 @@ const StatRow: React.FC<{ label: string; value: number; icon: React.ReactNode }>
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -5 }}
-                            className={`font-mono text-[10px] font-bold ${delta > 0 ? 'text-green-400' : 'text-system-danger'}`}
+                            className={`font-mono text-[11px] font-bold ${delta > 0 ? 'text-green-400' : 'text-system-danger'}`}
                         >
                             {delta > 0 ? `+${delta}` : delta}
                         </motion.span>
@@ -84,14 +84,15 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({ player, onViewStage 
                     <h2 className="text-xl font-black text-white tracking-widest uppercase italic">Player {player.firstName}</h2>
                     <button
                         onClick={onViewStage}
-                        className="flex items-center gap-1.5 text-system-blue font-mono text-[10px] uppercase tracking-[0.2em] mt-1 group-hover:text-blue-400 transition-colors"
+                        aria-label={`View ${currentStage.name} details`}
+                        className="flex items-center gap-1.5 text-system-blue font-mono text-[11px] uppercase tracking-[0.2em] mt-1 group-hover:text-blue-400 transition-colors tap-feedback"
                     >
                         {currentStage.name} <Info size={10} />
                     </button>
-                    <p className="text-[8px] font-mono text-system-text/30 uppercase mt-0.5">{timeInStage} DAYS IN STAGE</p>
+                    <p className="text-[10px] font-mono text-system-text/50 uppercase mt-0.5">{timeInStage} DAYS IN STAGE</p>
                 </div>
                 <div className="text-right flex flex-col items-end">
-                    <p className="text-[10px] text-system-text/40 font-mono uppercase tracking-widest mb-1">LVL</p>
+                    <p className="text-[10px] text-system-text/60 font-mono uppercase tracking-widest mb-1">LVL</p>
                     <div className="relative">
                         <p className="text-4xl font-black text-system-gold italic drop-shadow-[0_0_10px_rgba(255,215,0,0.3)] leading-none">{player.level}</p>
                         <AnimatePresence>
@@ -113,9 +114,9 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({ player, onViewStage 
 
 
             <div className="mb-6 p-3 bg-system-dark/30 border border-system-border/20 rounded-sm">
-                <div className="flex justify-between text-[10px] font-mono mb-2">
-                    <span className="text-system-text/40 tracking-widest uppercase">Experience</span>
-                    <span className="text-system-gold">{player.xp} <span className="text-system-text/20">/</span> {player.maxXp}</span>
+                <div className="flex justify-between text-[11px] font-mono mb-2 font-bold">
+                    <span className="text-system-text/60 tracking-widest uppercase">Experience</span>
+                    <span className="text-system-gold">{player.xp} <span className="text-system-text/40">/</span> {player.maxXp}</span>
                 </div>
                 <div className="h-1.5 bg-system-dark rounded-full overflow-hidden border border-system-border/30">
                     <motion.div
@@ -142,15 +143,15 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({ player, onViewStage 
                 <div className="mb-6 space-y-4 pt-4 border-t border-system-border/30">
                     {player.skills.length > 0 && (
                         <div>
-                            <div className="text-[9px] font-mono text-system-text/40 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <div className="text-[10px] font-mono text-system-text/60 uppercase tracking-widest mb-2 flex items-center gap-2">
                                 <Award size={10} className="text-system-gold" /> Active Skills
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 {player.skills.map(skill => (
                                     <div key={skill.id} className="p-2 bg-system-dark/30 border border-system-border/20 rounded-sm">
                                         <div className="flex justify-between items-center mb-1">
-                                            <span className="text-[10px] text-white font-bold">{skill.name}</span>
-                                            <span className="text-[9px] text-system-gold font-mono">LVL {skill.level}</span>
+                                            <span className="text-[11px] text-white font-bold">{skill.name}</span>
+                                            <span className="text-[10px] text-system-gold font-mono">LVL {skill.level}</span>
                                         </div>
                                         <div className="h-0.5 bg-system-dark rounded-full overflow-hidden">
                                             <div className="h-full bg-system-gold" style={{ width: `${(skill.xp / skill.maxXp) * 100}%` }} />
@@ -162,12 +163,12 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({ player, onViewStage 
                     )}
                     {player.traits.filter(t => !t.isHidden).length > 0 && (
                         <div>
-                            <div className="text-[9px] font-mono text-system-text/40 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <div className="text-[10px] font-mono text-system-text/60 uppercase tracking-widest mb-2 flex items-center gap-2">
                                 <Star size={10} className="text-system-blue" /> Behavior Traits
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 {player.traits.filter(t => !t.isHidden).map(trait => (
-                                    <div key={trait.id} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-sm text-[9px] text-system-text/60 font-mono uppercase">
+                                    <div key={trait.id} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-sm text-[10px] text-system-text/70 font-mono uppercase">
                                         {trait.name}
                                     </div>
                                 ))}
@@ -178,10 +179,10 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({ player, onViewStage 
             )}
 
             <div className="mt-4 pt-4 border-t border-system-border flex justify-between items-center bg-gradient-to-t from-white/5 to-transparent -mx-6 -mb-6 px-6 pb-6 shadow-up">
-                <div className="text-[10px] font-mono text-system-text/40 uppercase tracking-widest">Credits</div>
+                <div className="text-[11px] font-mono text-system-text/60 uppercase tracking-widest font-bold">Credits</div>
                 <div className="text-system-gold font-mono font-black flex items-center gap-2">
                     <span className="text-2xl drop-shadow-[0_0_8px_rgba(255,215,0,0.2)]">{player.credits.toLocaleString()}</span>
-                    <span className="text-xs text-system-text/40">C</span>
+                    <span className="text-[11px] text-system-text/50">C</span>
                 </div>
             </div>
         </div>

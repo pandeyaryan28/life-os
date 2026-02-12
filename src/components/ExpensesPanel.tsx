@@ -58,6 +58,7 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                 </h2>
                 <button
                     onClick={() => setIsAdding(true)}
+                    aria-label="Log New Expense"
                     className="p-2 active:bg-system-blue/10 rounded-sm text-system-blue transition-colors border border-system-blue/30 tap-feedback"
                 >
                     <Plus size={16} />
@@ -90,14 +91,14 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                     <div className="min-w-0 flex-1">
                                         <p className="text-xs font-bold text-white uppercase flex items-center gap-2 flex-wrap">
                                             <span className="truncate">{exp.name}</span>
-                                            {exp.pendingPayment && <span className="text-[8px] bg-system-danger text-white px-1 py-0.5 rounded-sm animate-pulse flex-shrink-0">DUE</span>}
+                                            {exp.pendingPayment && <span className="text-[10px] bg-system-danger text-white px-1 py-0.5 rounded-sm animate-pulse flex-shrink-0">DUE</span>}
                                         </p>
-                                        <p className="text-[9px] font-mono text-system-text/40 uppercase">{exp.frequency} • {exp.category}</p>
+                                        <p className="text-[10px] font-mono text-system-text/60 uppercase">{exp.frequency} • {exp.category}</p>
                                     </div>
                                     <div className="text-right flex items-center gap-2 md:gap-3 flex-shrink-0 ml-2">
                                         <div>
                                             <p className="text-xs font-black text-system-danger font-mono">-{exp.amount} C</p>
-                                            <p className="text-[8px] font-mono text-system-text/30">{exp.pendingPayment ? 'NOW' : 'AUTO'}</p>
+                                            <p className="text-[10px] font-mono text-system-text/40">{exp.pendingPayment ? 'NOW' : 'AUTO'}</p>
                                         </div>
                                         {exp.pendingPayment && (
                                             <button
@@ -139,7 +140,7 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                         </div>
                                         <div className="text-right flex-shrink-0 ml-2">
                                             <p className="text-[11px] font-black text-system-danger font-mono">-{exp.amount}</p>
-                                            <p className="text-[8px] font-mono text-system-text/30 uppercase">{exp.category}</p>
+                                            <p className="text-[10px] font-mono text-system-text/50 uppercase">{exp.category}</p>
                                         </div>
                                     </div>
                                 ))
@@ -170,8 +171,9 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
 
                         <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto">
                             <div>
-                                <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Expense Name</label>
+                                <label htmlFor="expense-name" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Expense Name</label>
                                 <input
+                                    id="expense-name"
                                     required
                                     value={name}
                                     onChange={e => setName(e.target.value)}
@@ -182,8 +184,9 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Amount (Numeric)</label>
+                                    <label htmlFor="expense-amount" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Amount (Numeric)</label>
                                     <input
+                                        id="expense-amount"
                                         required
                                         type="number"
                                         value={amount}
@@ -192,8 +195,9 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Category</label>
+                                    <label htmlFor="expense-category" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Category</label>
                                     <input
+                                        id="expense-category"
                                         required
                                         value={category}
                                         onChange={e => setCategory(e.target.value)}
@@ -204,8 +208,9 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Type</label>
+                                    <label htmlFor="expense-type" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Type</label>
                                     <select
+                                        id="expense-type"
                                         value={type}
                                         onChange={e => setType(e.target.value as any)}
                                         className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none"
@@ -216,8 +221,9 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                 </div>
                                 {type === 'RECURRING' && (
                                     <div>
-                                        <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Frequency</label>
+                                        <label htmlFor="expense-freq" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Frequency</label>
                                         <select
+                                            id="expense-freq"
                                             value={frequency}
                                             onChange={e => setFrequency(e.target.value as any)}
                                             className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none"
@@ -231,11 +237,12 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                             </div>
 
                             <div>
-                                <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Optional Notes</label>
+                                <label htmlFor="expense-notes" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Optional Notes</label>
                                 <textarea
+                                    id="expense-notes"
                                     value={notes}
                                     onChange={e => setNotes(e.target.value)}
-                                    className="w-full bg-system-panel border border-system-border p-3 font-mono text-[10px] text-white focus:border-system-blue outline-none h-20 resize-none"
+                                    className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none h-20 resize-none"
                                 />
                             </div>
 

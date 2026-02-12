@@ -26,7 +26,7 @@ export const BottomNav: React.FC = () => {
     if (!isMobile) return null;
 
     return (
-        <nav className="bottom-nav" role="navigation" aria-label="Main navigation">
+        <nav className="bottom-nav" role="navigation" aria-label="Mobile Navigation">
             {NAV_ITEMS.map(item => (
                 <button
                     key={item.id}

@@ -1,39 +1,43 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#00aaff" />
-    <meta name="description" content="LIFE OS — Gamified Life Management Operating System. Track quests, goals, stats, and economy." />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="application-name" content="LIFE OS" />
-    
-    <!-- iOS PWA Support -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="LIFE OS" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-    
-    <!-- Favicon & Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
-    
-    <!-- Preconnect — Firebase only (max 4, no Razorpay here) -->
-    <link rel="preconnect" href="https://life-os-1e607.firebaseapp.com" />
-    <link rel="preconnect" href="https://firestore.googleapis.com" />
-    
-    <title>LIFE OS — Gamified Life Management</title>
 
-    <!-- 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#00aaff" />
+  <meta name="description"
+    content="LIFE OS — Gamified Life Management Operating System. Track quests, goals, stats, and economy." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="LIFE OS" />
+
+  <!-- iOS PWA Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LIFE OS" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+
+  <!-- Favicon & Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+
+  <!-- Preconnect — Firebase only (max 4, no Razorpay here) -->
+  <link rel="preconnect" href="https://life-os-1e607.firebaseapp.com" />
+  <link rel="preconnect" href="https://firestore.googleapis.com" />
+
+  <title>LIFE OS — Gamified Life Management</title>
+
+  <!-- 
       PERF v1.8: Razorpay script REMOVED from global HTML.
       It is now dynamically loaded only when payment flow is triggered.
       Google Fonts REMOVED from critical path — fonts are now self-hosted. 
     -->
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

@@ -18,9 +18,11 @@ export const CompactPlayerCard: React.FC<CompactPlayerCardProps> = ({ player, on
             {/* Compact Summary — Always Visible */}
             <button
                 onClick={() => setExpanded(!expanded)}
+                aria-expanded={expanded}
+                aria-label={expanded ? "Collapse player stats" : "Expand player stats"}
                 className="player-compact w-full tap-feedback"
             >
-                <div className="player-compact-avatar">
+                <div className="player-compact-avatar" aria-hidden="true">
                     {player.firstName?.charAt(0)?.toUpperCase() || 'P'}
                 </div>
                 <div className="player-compact-info">
@@ -29,7 +31,7 @@ export const CompactPlayerCard: React.FC<CompactPlayerCardProps> = ({ player, on
                         <div className="flex items-center gap-2">
                             <span className="player-compact-level">LVL {player.level}</span>
                             <span className="player-compact-credits">{player.credits.toLocaleString()} C</span>
-                            {expanded ? <ChevronUp size={14} className="text-system-text/40" /> : <ChevronDown size={14} className="text-system-text/40" />}
+                            {expanded ? <ChevronUp size={14} className="text-system-text/60" /> : <ChevronDown size={14} className="text-system-text/60" />}
                         </div>
                     </div>
                     <div className="player-compact-xp-bar">
@@ -44,11 +46,12 @@ export const CompactPlayerCard: React.FC<CompactPlayerCardProps> = ({ player, on
                     <div className="pt-3 flex items-center justify-between">
                         <button
                             onClick={onViewStage}
-                            className="text-[10px] font-mono text-system-blue uppercase tracking-widest tap-feedback"
+                            aria-label={`View ${currentStage.name} details`}
+                            className="text-[11px] font-mono text-system-blue uppercase tracking-widest tap-feedback font-bold"
                         >
                             {currentStage.name} →
                         </button>
-                        <span className="text-[9px] font-mono text-system-text/30 uppercase">
+                        <span className="text-[10px] font-mono text-system-text/50 uppercase font-bold">
                             {player.xp}/{player.maxXp} XP
                         </span>
                     </div>
@@ -64,14 +67,14 @@ export const CompactPlayerCard: React.FC<CompactPlayerCardProps> = ({ player, on
                         ].map(stat => (
                             <div key={stat.label} className="flex items-center gap-2 py-1.5 px-2 bg-system-dark/30 border border-system-border/20 rounded-sm">
                                 <span className="text-system-blue">{stat.icon}</span>
-                                <span className="text-[9px] font-mono text-system-text/60 uppercase flex-1">{stat.label}</span>
-                                <span className="text-[10px] font-mono text-system-gold font-bold">{stat.value}</span>
+                                <span className="text-[10px] font-mono text-system-text/70 uppercase flex-1">{stat.label}</span>
+                                <span className="text-[11px] font-mono text-system-gold font-bold">{stat.value}</span>
                             </div>
                         ))}
                     </div>
 
                     <div className="flex items-center justify-between px-2 py-2 bg-system-dark/30 border border-system-border/20 rounded-sm">
-                        <span className="text-[9px] font-mono text-system-text/40 uppercase">Streak</span>
+                        <span className="text-[10px] font-mono text-system-text/60 uppercase font-bold">Streak</span>
                         <span className="text-xs font-bold text-system-gold font-mono">{player.streak}D 🔥</span>
                     </div>
                 </div>

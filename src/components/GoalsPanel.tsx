@@ -83,6 +83,7 @@ export const GoalsPanel: React.FC<GoalsPanelProps> = ({
                 </h2>
                 <button
                     onClick={() => setIsAdding(true)}
+                    aria-label="Add New Goal"
                     className="p-2 active:bg-system-blue/10 rounded-sm text-system-blue transition-colors border border-system-blue/30 tap-feedback"
                 >
                     <Plus size={16} />
@@ -140,7 +141,7 @@ export const GoalsPanel: React.FC<GoalsPanelProps> = ({
                                     <div className="flex justify-between items-center mt-3">
                                         <div className="flex gap-1.5 flex-wrap">
                                             {goal.associatedStats?.map(stat => (
-                                                <span key={stat} className="text-[8px] font-mono text-system-blue/60 uppercase p-1 bg-system-blue/5 border border-system-blue/10">
+                                                <span key={stat} className="text-[10px] font-mono text-system-blue/80 uppercase p-1 bg-system-blue/10 border border-system-blue/20">
                                                     {stat.substring(0, 3)}
                                                 </span>
                                             ))}
@@ -153,7 +154,8 @@ export const GoalsPanel: React.FC<GoalsPanelProps> = ({
                                                         onDeleteGoal(goal.id);
                                                     }
                                                 }}
-                                                className="text-[9px] font-mono text-system-danger/40 active:text-system-danger uppercase transition-colors p-1 tap-feedback"
+                                                aria-label={`Delete ${goal.name}`}
+                                                className="text-[10px] font-mono text-system-danger/70 active:text-system-danger uppercase transition-colors p-1 tap-feedback"
                                             >
                                                 TERMINATE
                                             </button>
@@ -188,7 +190,8 @@ export const GoalsPanel: React.FC<GoalsPanelProps> = ({
                                                                 e.stopPropagation();
                                                                 setIsLinking(goal.id);
                                                             }}
-                                                            className="text-[9px] font-black text-system-blue border border-system-blue/30 px-2 py-1 rounded-sm active:bg-system-blue/10 transition-colors uppercase flex items-center gap-1 tap-feedback"
+                                                            aria-label="Add Quest to this Goal"
+                                                            className="text-[10px] font-black text-system-blue border border-system-blue/30 px-2 py-1 rounded-sm active:bg-system-blue/10 transition-colors uppercase flex items-center gap-1 tap-feedback"
                                                         >
                                                             <Plus size={10} /> Add Quest
                                                         </button>
@@ -211,10 +214,10 @@ export const GoalsPanel: React.FC<GoalsPanelProps> = ({
                                                                             <Circle size={14} className="text-system-text/20 flex-shrink-0" />
                                                                         )}
                                                                         <div className="flex flex-col min-w-0">
-                                                                            <span className={`text-[10px] font-mono font-bold truncate ${q.status === 'COMPLETED' ? 'text-system-text/40 line-through' : 'text-system-text'}`}>
+                                                                            <span className={`text-[11px] font-mono font-bold truncate ${q.status === 'COMPLETED' ? 'text-system-text/40 line-through' : 'text-system-text'}`}>
                                                                                 {q.title}
                                                                             </span>
-                                                                            <span className="text-[8px] font-mono text-system-text/30 uppercase">
+                                                                            <span className="text-[10px] font-mono text-system-text/60 uppercase">
                                                                                 {q.type} • {q.status}
                                                                             </span>
                                                                         </div>
@@ -285,7 +288,7 @@ export const GoalsPanel: React.FC<GoalsPanelProps> = ({
                                     onTriggerNewQuest(isLinking);
                                     setIsLinking(null);
                                 }}
-                                className="w-full p-4 border-2 border-dashed border-system-blue/30 text-system-blue font-mono text-[10px] uppercase active:bg-system-blue/5 transition-colors flex items-center justify-center gap-2 tap-feedback"
+                                className="w-full p-4 border-2 border-dashed border-system-blue/30 text-system-blue font-mono text-xs uppercase active:bg-system-blue/5 transition-colors flex items-center justify-center gap-2 tap-feedback"
                             >
                                 <Plus size={14} /> Initialize Fresh Quest
                             </button>
@@ -339,8 +342,9 @@ export const GoalsPanel: React.FC<GoalsPanelProps> = ({
 
                         <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto pr-2 flex-1">
                             <div>
-                                <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Goal Name</label>
+                                <label htmlFor="goal-name" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Goal Name</label>
                                 <input
+                                    id="goal-name"
                                     required
                                     value={name}
                                     onChange={e => setName(e.target.value)}
@@ -350,27 +354,30 @@ export const GoalsPanel: React.FC<GoalsPanelProps> = ({
                             </div>
 
                             <div>
-                                <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Description / Roadmap</label>
+                                <label htmlFor="goal-desc" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Description / Roadmap</label>
                                 <textarea
+                                    id="goal-desc"
                                     required
                                     value={description}
                                     onChange={e => setDescription(e.target.value)}
-                                    className="w-full bg-system-panel border border-system-border p-3 font-mono text-[10px] text-white focus:border-system-blue outline-none h-24 resize-none"
+                                    className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none h-24 resize-none"
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Category</label>
+                                    <label htmlFor="goal-category" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Category</label>
                                     <input
+                                        id="goal-category"
                                         value={category}
                                         onChange={e => setCategory(e.target.value)}
                                         className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Deadline (Optional)</label>
+                                    <label htmlFor="goal-deadline" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Deadline (Optional)</label>
                                     <input
+                                        id="goal-deadline"
                                         type="date"
                                         value={deadline}
                                         onChange={e => setDeadline(e.target.value)}
@@ -380,14 +387,14 @@ export const GoalsPanel: React.FC<GoalsPanelProps> = ({
                             </div>
 
                             <div>
-                                <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Associated Stats</label>
+                                <label className="block text-[10px] font-mono text-system-blue uppercase mb-1">Associated Stats</label>
                                 <div className="grid grid-cols-4 gap-2">
                                     {STAT_OPTIONS.map(stat => (
                                         <button
                                             key={stat}
                                             type="button"
                                             onClick={() => toggleStat(stat)}
-                                            className={`py-2 text-[8px] font-mono border transition-all tap-feedback ${associatedStats.includes(stat) ? 'bg-system-blue/20 border-system-blue text-system-blue' : 'bg-system-dark border-system-border text-system-text/40'}`}
+                                            className={`py-2 text-[10px] font-mono border transition-all tap-feedback ${associatedStats.includes(stat) ? 'bg-system-blue/20 border-system-blue text-system-blue' : 'bg-system-dark border-system-border text-system-text/40'}`}
                                         >
                                             {stat.toUpperCase()}
                                         </button>

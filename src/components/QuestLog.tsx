@@ -20,13 +20,13 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
 
     const getDifficultyColor = (diff: string) => {
         switch (diff) {
-            case 'E': return 'text-gray-400';
+            case 'E': return 'text-gray-300';
             case 'D': return 'text-green-400';
             case 'C': return 'text-blue-400';
             case 'B': return 'text-purple-400';
             case 'A': return 'text-orange-400';
             case 'S': return 'text-red-500';
-            default: return 'text-gray-400';
+            default: return 'text-gray-300';
         }
     };
 
@@ -94,7 +94,7 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                 className="border border-system-border bg-system-dark/50 p-3 md:p-4 active:border-system-blue/50 transition-colors group relative overflow-hidden"
                             >
                                 {/* Rank/Difficulty Indicator */}
-                                <div className={`absolute top-0 right-0 px-3 py-0.5 text-[10px] font-bold font-mono bg-system-border/30 border-l border-b border-system-border ${getDifficultyColor(quest.difficulty)}`}>
+                                <div className={`absolute top-0 right-0 px-3 py-0.5 text-xs font-bold font-mono bg-system-border/40 border-l border-b border-system-border ${getDifficultyColor(quest.difficulty)}`}>
                                     RANK {quest.difficulty}
                                 </div>
 
@@ -112,7 +112,7 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                         <X size={16} />
                                     </button>
                                     <div>
-                                        <div className="text-[10px] font-mono text-system-blue/60 uppercase mb-0.5">
+                                        <div className="text-xs font-mono text-system-blue/80 uppercase mb-0.5">
                                             {quest.type} QUEST
                                             {quest.type === 'DAILY' && quest.streak !== undefined && (
                                                 <span className="ml-2 text-system-gold">STREAK: {quest.streak}</span>
@@ -121,12 +121,12 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                         <h3 className="font-bold text-system-text text-sm md:text-base transition-colors flex items-center gap-2 flex-wrap">
                                             {quest.title}
                                             {quest.goalId && (
-                                                <span className="text-[8px] bg-system-blue/20 text-system-blue px-1.5 py-0.5 rounded-full border border-system-blue/30 uppercase tracking-tighter">
+                                                <span className="text-[10px] bg-system-blue/20 text-system-blue px-1.5 py-0.5 rounded-full border border-system-blue/30 uppercase tracking-tighter">
                                                     Linked to Goal
                                                 </span>
                                             )}
                                             {quest.deadline && new Date(quest.deadline) < new Date() && quest.status === 'ACTIVE' && (
-                                                <span className="text-[8px] bg-system-danger/20 text-system-danger px-1.5 py-0.5 rounded-full border border-system-danger/30 uppercase tracking-tighter flex items-center gap-1">
+                                                <span className="text-[10px] bg-system-danger/20 text-system-danger px-1.5 py-0.5 rounded-full border border-system-danger/30 uppercase tracking-tighter flex items-center gap-1">
                                                     <Clock size={8} /> OVERDUE
                                                 </span>
                                             )}
@@ -160,7 +160,7 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-3 md:mt-4 pt-3 border-t border-system-border/30 gap-3">
                                     <div className="flex items-center gap-4">
                                         <div className="flex flex-col">
-                                            <span className="text-[8px] font-mono text-system-text/40 uppercase">Rewards</span>
+                                            <span className="text-[10px] font-mono text-system-text/60 uppercase">Rewards</span>
                                             <div className="flex gap-3 text-xs font-mono flex-wrap">
                                                 <span className="text-system-gold">+{quest.rewards.xp} XP</span>
                                                 {quest.rewards.credits !== undefined && quest.rewards.credits > 0 && <span className="text-white">+{quest.rewards.credits} C</span>}

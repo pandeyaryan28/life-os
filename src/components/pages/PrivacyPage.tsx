@@ -33,19 +33,19 @@ export const PrivacyPage: React.FC = () => {
             title: '1. Information Collected',
             content: (
                 <div className="space-y-3">
-                    <p className="text-sm text-gray-300 leading-relaxed">We collect the following categories of information:</p>
-                    <ul className="space-y-2 text-sm text-gray-400">
+                    <p className="text-sm text-gray-200 leading-relaxed">We collect the following categories of information:</p>
+                    <ul className="space-y-2 text-sm text-gray-300">
                         <li className="flex items-start gap-2">
                             <span className="text-cyan-500 mt-1">•</span>
-                            <span><strong className="text-gray-300">Account Information</strong> — Email address and display name provided during registration.</span>
+                            <span><strong className="text-gray-200">Account Information</strong> — Email address and display name provided during registration.</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-cyan-500 mt-1">•</span>
-                            <span><strong className="text-gray-300">User-Generated Data</strong> — Quests, goals, expenses, and other content you create within the platform.</span>
+                            <span><strong className="text-gray-200">User-Generated Data</strong> — Quests, goals, expenses, and other content you create within the platform.</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-cyan-500 mt-1">•</span>
-                            <span><strong className="text-gray-300">Usage Analytics</strong> — Basic usage patterns for system improvement, if analytics are enabled.</span>
+                            <span><strong className="text-gray-200">Usage Analytics</strong> — Basic usage patterns for system improvement, if analytics are enabled.</span>
                         </li>
                     </ul>
                     <div className="bg-green-500/5 border border-green-500/15 rounded-lg p-3 mt-3">
@@ -60,19 +60,19 @@ export const PrivacyPage: React.FC = () => {
             title: '2. How Data Is Stored',
             content: (
                 <div className="space-y-3">
-                    <p className="text-sm text-gray-300 leading-relaxed">Your data is stored using industry-standard secure infrastructure:</p>
-                    <ul className="space-y-2 text-sm text-gray-400">
+                    <p className="text-sm text-gray-200 leading-relaxed">Your data is stored using industry-standard secure infrastructure:</p>
+                    <ul className="space-y-2 text-sm text-gray-300">
                         <li className="flex items-start gap-2">
                             <span className="text-purple-500 mt-1">•</span>
-                            <span><strong className="text-gray-300">Firebase Authentication</strong> — Handles identity management and secure sign-in.</span>
+                            <span><strong className="text-gray-200">Firebase Authentication</strong> — Handles identity management and secure sign-in.</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-purple-500 mt-1">•</span>
-                            <span><strong className="text-gray-300">Cloud Firestore</strong> — Stores user-generated data with real-time synchronization.</span>
+                            <span><strong className="text-gray-200">Cloud Firestore</strong> — Stores user-generated data with real-time synchronization.</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-purple-500 mt-1">•</span>
-                            <span><strong className="text-gray-300">Secure Cloud Infrastructure</strong> — All data is hosted on Google Cloud Platform with enterprise-grade security.</span>
+                            <span><strong className="text-gray-200">Secure Cloud Infrastructure</strong> — All data is hosted on Google Cloud Platform with enterprise-grade security.</span>
                         </li>
                     </ul>
                 </div>
@@ -128,19 +128,19 @@ export const PrivacyPage: React.FC = () => {
             title: '5. User Rights',
             content: (
                 <div className="space-y-3">
-                    <p className="text-sm text-gray-300 leading-relaxed">You have the following rights regarding your data:</p>
-                    <ul className="space-y-2 text-sm text-gray-400">
+                    <p className="text-sm text-gray-200 leading-relaxed">You have the following rights regarding your data:</p>
+                    <ul className="space-y-2 text-sm text-gray-300">
                         <li className="flex items-start gap-2">
                             <span className="text-yellow-500 mt-1">•</span>
-                            <span><strong className="text-gray-300">Request Deletion</strong> — You may request complete deletion of your account and associated data.</span>
+                            <span><strong className="text-gray-200">Request Deletion</strong> — You may request complete deletion of your account and associated data.</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-yellow-500 mt-1">•</span>
-                            <span><strong className="text-gray-300">Request Data Export</strong> — You may request an export of your personal data.</span>
+                            <span><strong className="text-gray-200">Request Data Export</strong> — You may request an export of your personal data.</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-yellow-500 mt-1">•</span>
-                            <span><strong className="text-gray-300">Modify Profile Information</strong> — You can update your display name and profile details at any time.</span>
+                            <span><strong className="text-gray-200">Modify Profile Information</strong> — You can update your display name and profile details at any time.</span>
                         </li>
                     </ul>
                     <p className="text-xs text-gray-500 mt-2">
@@ -224,8 +224,8 @@ export const PrivacyPage: React.FC = () => {
                         </div>
                     </div>
                     <div className="h-px bg-gradient-to-r from-purple-500/30 via-white/10 to-transparent mb-4" />
-                    <div className="flex items-center gap-4 text-xs font-mono text-gray-500">
-                        <span>Last Updated: <strong className="text-gray-400">v1.7.5</strong></span>
+                    <div className="flex items-center gap-4 text-xs font-mono text-gray-400">
+                        <span>Last Updated: <strong className="text-gray-300">v1.8.1</strong></span>
                         <span className="text-white/10">|</span>
                         <span>Effective: February 2026</span>
                     </div>
@@ -258,13 +258,13 @@ export const PrivacyPage: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <footer className="mt-16 pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-mono text-gray-600 uppercase tracking-widest">
+                <footer className="mt-16 pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-mono text-gray-500 uppercase tracking-widest">
                     <div className="flex items-center gap-4">
                         <Link to="/support" className="hover:text-cyan-400 transition-colors">Support</Link>
                         <span className="text-white/10">|</span>
                         <Link to="/privacy" className="hover:text-cyan-400 transition-colors">Privacy Policy</Link>
                     </div>
-                    <span>LIFE OS v1.7.5</span>
+                    <span>LIFE OS v1.8.1</span>
                 </footer>
             </div>
         </div>

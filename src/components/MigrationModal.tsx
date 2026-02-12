@@ -25,6 +25,9 @@ export const MigrationModal: React.FC<MigrationModalProps> = ({ isOpen, onConfir
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="migration-title"
                         className="relative w-full max-w-lg bg-[#111] border border-white/10 rounded-2xl p-8 shadow-2xl overflow-hidden"
                     >
                         {/* Background Glow */}
@@ -35,14 +38,14 @@ export const MigrationModal: React.FC<MigrationModalProps> = ({ isOpen, onConfir
                                 <Database className="w-8 h-8 text-cyan-400" />
                             </div>
 
-                            <h2 className="text-2xl font-bold text-white mb-2 font-mono uppercase tracking-tight">Legacy Data Detected</h2>
-                            <p className="text-gray-400 text-sm mb-8 leading-relaxed">
+                            <h2 id="migration-title" className="text-2xl font-bold text-white mb-2 font-mono uppercase tracking-tight">Legacy Data Detected</h2>
+                            <p className="text-gray-300 text-sm mb-8 leading-relaxed font-bold">
                                 We've found existing system data on this device. Would you like to synchronize your local stats, quests, and goals to the Cloud?
                             </p>
 
                             <div className="w-full bg-white/5 border border-white/5 rounded-xl p-4 mb-8 grid grid-cols-3 items-center gap-4">
                                 <div className="flex flex-col items-center">
-                                    <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Local</div>
+                                    <div className="text-[11px] text-gray-400 uppercase font-bold mb-1">Local</div>
                                     <div className="text-xs text-white">Browser Storage</div>
                                 </div>
                                 <div className="flex justify-center">
@@ -69,9 +72,9 @@ export const MigrationModal: React.FC<MigrationModalProps> = ({ isOpen, onConfir
                                 </button>
                             </div>
 
-                            <div className="mt-6 flex items-start gap-2 text-left">
-                                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                                <p className="text-[10px] text-gray-500 uppercase leading-snug tracking-wider">
+                            <div className="mt-6 flex items-start gap-2 text-left bg-amber-500/5 p-3 border border-amber-500/20 rounded-lg">
+                                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                                <p className="text-[11px] text-gray-300 uppercase leading-snug tracking-wider font-bold">
                                     Warning: Migration is a one-time operation. Current cloud data (if any) will be merged with local data.
                                 </p>
                             </div>

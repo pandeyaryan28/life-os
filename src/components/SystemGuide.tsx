@@ -35,10 +35,14 @@ export const SystemGuide: React.FC<SystemGuideProps> = ({ isOpen, onClose }) => 
                             <BookOpen className="text-system-blue flex-shrink-0" size={20} />
                             <div className="min-w-0">
                                 <h2 className="text-base md:text-xl font-black text-white tracking-widest uppercase italic truncate">System Guide</h2>
-                                <p className="text-[10px] font-mono text-system-text/40 uppercase tracking-widest mt-1">LIFE OS v1.6.2 // Documentation Layer</p>
+                                <p className="text-[11px] font-mono text-system-text/60 uppercase tracking-widest mt-1">LIFE OS v{STAGES[0] ? '1.8.1' : '1.8.1'} // Documentation Layer</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="p-2 active:bg-white/5 rounded-full transition-colors border border-system-border/30 text-system-text/60 tap-feedback flex-shrink-0">
+                        <button
+                            onClick={onClose}
+                            aria-label="Close Guide"
+                            className="p-2 active:bg-white/5 rounded-full transition-colors border border-system-border/30 text-system-text/70 tap-feedback flex-shrink-0"
+                        >
                             <ArrowLeft size={20} className="md:hidden" />
                             <X size={20} className="hidden md:block" />
                         </button>
@@ -65,15 +69,15 @@ export const SystemGuide: React.FC<SystemGuideProps> = ({ isOpen, onClose }) => 
                                 <div className="space-y-3">
                                     <div className="p-3 bg-system-dark/50 border border-system-border/30 rounded-sm">
                                         <p className="text-[11px] font-bold text-white uppercase mb-1">MAIN QUESTS</p>
-                                        <p className="text-[10px] text-system-text/60 leading-relaxed">High-priority milestones or long-term commitments. Crucial for significant level advancement.</p>
+                                        <p className="text-[11px] text-system-text/80 leading-relaxed">High-priority milestones or long-term commitments. Crucial for significant level advancement.</p>
                                     </div>
                                     <div className="p-3 bg-system-dark/50 border border-system-border/30 rounded-sm">
                                         <p className="text-[11px] font-bold text-white uppercase mb-1">SIDE QUESTS</p>
-                                        <p className="text-[10px] text-system-text/60 leading-relaxed">Minor tasks or spontaneous objectives. Ideal for quick XP and Stat gains.</p>
+                                        <p className="text-[11px] text-system-text/80 leading-relaxed">Minor tasks or spontaneous objectives. Ideal for quick XP and Stat gains.</p>
                                     </div>
                                     <div className="p-3 bg-system-dark/50 border border-system-border/30 rounded-sm">
                                         <p className="text-[11px] font-bold text-white uppercase mb-1">DAILY QUESTS</p>
-                                        <p className="text-[10px] text-system-text/60 leading-relaxed">Recurring routines. Must be completed before 00:00 local time to maintain streaks.</p>
+                                        <p className="text-[11px] text-system-text/80 leading-relaxed">Recurring routines. Must be completed before 00:00 local time to maintain streaks.</p>
                                     </div>
                                 </div>
                             </section>
@@ -85,15 +89,15 @@ export const SystemGuide: React.FC<SystemGuideProps> = ({ isOpen, onClose }) => 
                                 <div className="space-y-3">
                                     <div className="p-3 bg-system-dark/50 border border-system-border/30 rounded-sm">
                                         <p className="text-[11px] font-bold text-white uppercase mb-1">XP & LEVELS</p>
-                                        <p className="text-[10px] text-system-text/60 leading-relaxed">Experience gained from completing quests. Leveling up marks overall maturity of the OS profile.</p>
+                                        <p className="text-[11px] text-system-text/80 leading-relaxed">Experience gained from completing quests. Leveling up marks overall maturity of the OS profile.</p>
                                     </div>
                                     <div className="p-3 bg-system-dark/50 border border-system-border/30 rounded-sm">
                                         <p className="text-[11px] font-bold text-white uppercase mb-1">CREDITS</p>
-                                        <p className="text-[10px] text-system-text/60 leading-relaxed">Numerical representation of real-world liquidity. Used for expense tracking and system rewards.</p>
+                                        <p className="text-[11px] text-system-text/80 leading-relaxed">Numerical representation of real-world liquidity. Used for expense tracking and system rewards.</p>
                                     </div>
                                     <div className="p-3 bg-system-dark/50 border border-system-border/30 rounded-sm">
                                         <p className="text-[11px] font-bold text-white uppercase mb-1">MACRO OBJECTIVES</p>
-                                        <p className="text-[10px] text-system-text/60 leading-relaxed">Containers for multiple quests. Used to track long-term goals and project-based progress.</p>
+                                        <p className="text-[11px] text-system-text/80 leading-relaxed">Containers for multiple quests. Used to track long-term goals and project-based progress.</p>
                                     </div>
                                 </div>
                             </section>
@@ -109,23 +113,23 @@ export const SystemGuide: React.FC<SystemGuideProps> = ({ isOpen, onClose }) => 
                                     <div key={stage.id} className="p-5 border border-system-border/30 bg-system-dark/30 rounded-sm space-y-4">
                                         <div className="border-b border-system-border/30 pb-2">
                                             <h4 className="text-xs font-black text-white uppercase tracking-widest">{stage.name}</h4>
-                                            <p className="text-[9px] font-mono text-system-text/40 mt-1 italic uppercase">{stage.id === 'awakened' ? 'Default Stage' : `Req: Level ${stage.entryConditions.minLevel}`}</p>
+                                            <p className="text-[10px] font-mono text-system-text/60 mt-1 italic uppercase font-bold">{stage.id === 'awakened' ? 'Default Stage' : `Req: Level ${stage.entryConditions.minLevel}`}</p>
                                         </div>
                                         <div className="space-y-3">
                                             <div>
-                                                <p className="text-[8px] font-mono text-green-400 uppercase tracking-widest mb-1">Unlocks</p>
+                                                <p className="text-[10px] font-mono text-green-400 uppercase tracking-widest mb-1 font-bold">Unlocks</p>
                                                 <div className="flex flex-wrap gap-1">
                                                     {stage.unlocks.map((u, i) => (
-                                                        <span key={i} className="text-[8px] bg-green-500/5 text-green-500/40 px-1 border border-green-500/10 rounded-sm">{u}</span>
+                                                        <span key={i} className="text-[10px] bg-green-500/10 text-green-400 px-1 border border-green-500/20 rounded-sm font-mono">{u}</span>
                                                     ))}
                                                 </div>
                                             </div>
                                             {stage.restrictions.length > 0 && (
                                                 <div>
-                                                    <p className="text-[8px] font-mono text-system-danger uppercase tracking-widest mb-1">Restrictions</p>
+                                                    <p className="text-[10px] font-mono text-system-danger uppercase tracking-widest mb-1 font-bold">Restrictions</p>
                                                     <div className="flex flex-wrap gap-1">
                                                         {stage.restrictions.map((r, i) => (
-                                                            <span key={i} className="text-[8px] bg-red-500/5 text-red-500/40 px-1 border border-red-500/10 rounded-sm">{r}</span>
+                                                            <span key={i} className="text-[10px] bg-red-500/10 text-system-danger px-1 border border-red-500/20 rounded-sm font-mono">{r}</span>
                                                         ))}
                                                     </div>
                                                 </div>

@@ -19,18 +19,18 @@ export const InstallPrompt: React.FC = () => {
                 <div className="min-w-0">
                     <p className="text-xs font-bold text-white uppercase tracking-wide">Install LIFE OS</p>
                     {isIOS ? (
-                        <p className="text-[9px] font-mono text-system-text/50 mt-0.5 leading-relaxed">
+                        <p className="text-[10px] font-mono text-system-text/60 mt-0.5 leading-relaxed">
                             Tap <Share size={10} className="inline text-system-blue" /> then <span className="text-white font-bold">"Add to Home Screen"</span>
                         </p>
                     ) : (
-                        <p className="text-[9px] font-mono text-system-text/50 uppercase mt-0.5">Add to home screen</p>
+                        <p className="text-[10px] font-mono text-system-text/60 uppercase mt-0.5">Add to home screen</p>
                     )}
                 </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                     onClick={() => setDismissed(true)}
-                    className="p-2 text-system-text/30 active:text-white transition-colors tap-feedback"
+                    className="p-2 text-system-text/50 active:text-white transition-colors tap-feedback"
                     aria-label="Dismiss install prompt"
                 >
                     <X size={16} />

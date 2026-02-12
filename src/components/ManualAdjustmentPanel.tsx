@@ -20,6 +20,15 @@ export const ManualAdjustmentPanel: React.FC<ManualAdjustmentPanelProps> = ({ hi
     const [reason, setReason] = useState('');
     const [selectedStats, setSelectedStats] = useState<Partial<Stats>>({});
 
+    // Esc key support
+    React.useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsAdjusting(false);
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onApplyAdjustment({
@@ -42,7 +51,8 @@ export const ManualAdjustmentPanel: React.FC<ManualAdjustmentPanelProps> = ({ hi
                 </h2>
                 <button
                     onClick={() => setIsAdjusting(true)}
-                    className="p-1 hover:bg-system-danger/10 rounded-sm text-system-danger transition-colors border border-system-danger/30"
+                    aria-label="Apply Manual Penalty"
+                    className="p-1 hover:bg-system-danger/10 rounded-sm text-system-danger transition-colors border border-system-danger/30 tap-feedback"
                 >
                     <UserMinus size={16} />
                 </button>
@@ -50,13 +60,13 @@ export const ManualAdjustmentPanel: React.FC<ManualAdjustmentPanelProps> = ({ hi
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
                 <div className="bg-system-danger/10 border border-system-danger/20 p-3 rounded-sm">
-                    <p className="text-[10px] font-mono text-system-danger uppercase leading-tight">
+                    <p className="text-[10px] font-mono text-system-danger uppercase leading-tight font-bold">
                         Self-accountability mode. Use this to manually penalize yourself for broken rules or failed discipline.
                     </p>
                 </div>
 
                 <div>
-                    <h3 className="text-[10px] font-mono text-system-text/40 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <h3 className="text-[10px] font-mono text-system-text/60 uppercase tracking-widest mb-3 flex items-center gap-2">
                         <History size={12} /> Penalty Logs
                     </h3>
                     <div className="space-y-2">
@@ -72,7 +82,7 @@ export const ManualAdjustmentPanel: React.FC<ManualAdjustmentPanelProps> = ({ hi
                                             </span>
                                             <span className="text-[10px] text-white font-black uppercase">-{typeof adj.value === 'number' ? Math.abs(adj.value) : 'STATS'}</span>
                                         </div>
-                                        <span className="text-[8px] font-mono text-system-text/30">{new Date(adj.timestamp).toLocaleString()}</span>
+                                        <span className="text-[10px] font-mono text-system-text/50">{new Date(adj.timestamp).toLocaleString()}</span>
                                     </div>
                                     <p className="text-[10px] font-mono text-system-text/70 italic leading-relaxed">"{adj.reason}"</p>
                                 </div>
@@ -95,21 +105,25 @@ export const ManualAdjustmentPanel: React.FC<ManualAdjustmentPanelProps> = ({ hi
                                 <AlertTriangle size={16} />
                                 Apply Intentional Penalty
                             </h3>
-                            <button onClick={() => setIsAdjusting(false)} className="text-system-text/40 hover:text-white transition-colors">
+                            <button
+                                onClick={() => setIsAdjusting(false)}
+                                aria-label="Close"
+                                className="text-system-text/40 hover:text-white transition-colors p-2 tap-feedback"
+                            >
                                 <Plus size={20} className="rotate-45" />
                             </button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Adjustment Type</label>
+                                <label className="block text-[10px] font-mono text-system-blue uppercase mb-1">Adjustment Type</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {(['XP', 'CREDITS', 'STATS', 'DEBUFF'] as const).map(t => (
                                         <button
                                             key={t}
                                             type="button"
                                             onClick={() => setType(t)}
-                                            className={`py-2 text-[10px] font-mono border transition-all ${type === t ? 'bg-system-danger/20 border-system-danger text-system-danger' : 'bg-system-panel border-system-border text-system-text/40'}`}
+                                            className={`py-2 text-[10px] font-mono border transition-all tap-feedback ${type === t ? 'bg-system-danger/20 border-system-danger text-system-danger' : 'bg-system-panel border-system-border text-system-text/60'}`}
                                         >
                                             {t}
                                         </button>
@@ -119,15 +133,16 @@ export const ManualAdjustmentPanel: React.FC<ManualAdjustmentPanelProps> = ({ hi
 
                             {type !== 'STATS' ? (
                                 <div>
-                                    <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Deduction Amount</label>
+                                    <label htmlFor="penalty-amount" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Deduction Amount</label>
                                     <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-system-danger">-</span>
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-system-danger font-bold">-</span>
                                         <input
+                                            id="penalty-amount"
                                             required
                                             type="number"
                                             value={value}
                                             onChange={e => setValue(Number(e.target.value))}
-                                            className="w-full bg-system-panel border border-system-border p-2 pl-6 font-mono text-xs text-white focus:border-system-danger outline-none"
+                                            className="w-full bg-system-panel border border-system-border p-3 pl-8 font-mono text-xs text-white focus:border-system-danger outline-none"
                                         />
                                     </div>
                                 </div>
@@ -135,12 +150,13 @@ export const ManualAdjustmentPanel: React.FC<ManualAdjustmentPanelProps> = ({ hi
                                 <div className="grid grid-cols-3 gap-2">
                                     {STAT_LABELS.map(stat => (
                                         <div key={stat} className="space-y-1">
-                                            <label className="text-[8px] font-mono text-system-text/40 uppercase block truncate">{stat}</label>
+                                            <label htmlFor={`stat-${stat}`} className="text-[10px] font-mono text-system-text/60 uppercase block truncate">{stat}</label>
                                             <input
+                                                id={`stat-${stat}`}
                                                 type="number"
                                                 placeholder="0"
                                                 onChange={e => setSelectedStats(prev => ({ ...prev, [stat]: -Math.abs(Number(e.target.value)) }))}
-                                                className="w-full bg-system-panel border border-system-border p-1 font-mono text-[10px] text-white focus:border-system-danger outline-none"
+                                                className="w-full bg-system-panel border border-system-border p-2 font-mono text-xs text-white focus:border-system-danger outline-none"
                                             />
                                         </div>
                                     ))}
@@ -148,12 +164,13 @@ export const ManualAdjustmentPanel: React.FC<ManualAdjustmentPanelProps> = ({ hi
                             )}
 
                             <div>
-                                <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Reason for Penalty (Honesty Required)</label>
+                                <label htmlFor="penalty-reason" className="block text-[10px] font-mono text-system-blue uppercase mb-1">Reason for Penalty (Honesty Required)</label>
                                 <textarea
+                                    id="penalty-reason"
                                     required
                                     value={reason}
                                     onChange={e => setReason(e.target.value)}
-                                    className="w-full bg-system-panel border border-system-border p-2 font-mono text-[10px] text-white focus:border-system-danger outline-none h-20 resize-none"
+                                    className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-danger outline-none h-20 resize-none"
                                     placeholder="Explain why you are penalizing yourself..."
                                 />
                             </div>

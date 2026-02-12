@@ -9,7 +9,11 @@ interface SystemOverlayProps {
 
 export const SystemOverlay: React.FC<SystemOverlayProps> = ({ notifications }) => {
     return (
-        <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 w-80 pointer-events-none">
+        <div
+            className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 w-80 pointer-events-none"
+            role="status"
+            aria-live="polite"
+        >
             <AnimatePresence mode="popLayout">
                 {notifications.map((notif) => (
                     <motion.div
@@ -26,8 +30,8 @@ export const SystemOverlay: React.FC<SystemOverlayProps> = ({ notifications }) =
             `}
                     >
                         <div className={`mt-0.5 ${notif.type === 'SUCCESS' ? 'text-green-400' :
-                                notif.type === 'FAILURE' ? 'text-system-danger' :
-                                    notif.type === 'WARNING' ? 'text-system-gold' : 'text-system-blue'
+                            notif.type === 'FAILURE' ? 'text-system-danger' :
+                                notif.type === 'WARNING' ? 'text-system-gold' : 'text-system-blue'
                             }`}>
                             {notif.type === 'SUCCESS' && <CheckCircle size={18} />}
                             {notif.type === 'FAILURE' && <XCircle size={18} />}
@@ -35,9 +39,9 @@ export const SystemOverlay: React.FC<SystemOverlayProps> = ({ notifications }) =
                             {notif.type === 'INFO' && <Info size={18} />}
                         </div>
                         <div className="flex-1">
-                            <p className={`font-mono text-[10px] font-bold uppercase tracking-widest mb-1 ${notif.type === 'SUCCESS' ? 'text-green-400/60' :
-                                    notif.type === 'FAILURE' ? 'text-system-danger/60' :
-                                        notif.type === 'WARNING' ? 'text-system-gold/60' : 'text-system-blue/60'
+                            <p className={`font-mono text-xs font-bold uppercase tracking-widest mb-1 ${notif.type === 'SUCCESS' ? 'text-green-400' :
+                                notif.type === 'FAILURE' ? 'text-system-danger' :
+                                    notif.type === 'WARNING' ? 'text-system-gold' : 'text-system-blue'
                                 }`}>
                                 {notif.type}
                             </p>

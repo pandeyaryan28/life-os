@@ -107,11 +107,12 @@ export const Dashboard: React.FC = () => {
     const SystemStatusPanel = () => (
         <div className="bg-system-panel border border-system-border p-4 rounded-sm flex-1 space-y-4 shadow-xl">
             <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-2 text-[10px] font-mono text-system-text/40 uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-xs font-mono text-system-text/70 uppercase tracking-widest">
                     <Terminal size={12} /> System Status
                 </div>
                 <button
                     onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                    aria-label="System Settings"
                     className={`p-2 rounded-sm transition-colors tap-feedback ${isSettingsOpen ? 'bg-system-blue text-white' : 'bg-system-dark/50 text-system-text/40 hover:text-white'}`}
                 >
                     <SettingsIcon size={14} />
@@ -152,7 +153,7 @@ export const Dashboard: React.FC = () => {
                         className="w-full py-3 border border-system-blue/30 hover:border-system-blue bg-system-blue/5 text-system-blue/60 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-3 group tap-feedback"
                     >
                         <BookOpen size={14} />
-                        <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em]">System Guide</span>
+                        <span className="font-mono text-xs font-black uppercase tracking-[0.2em]">System Guide</span>
                     </button>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -161,19 +162,19 @@ export const Dashboard: React.FC = () => {
                             className="bg-system-dark/50 border border-system-border p-3 rounded-sm hover:border-system-gold/50 transition-colors flex flex-col items-start gap-1 tap-feedback"
                         >
                             <BarChart3 size={12} className="text-system-gold opacity-50" />
-                            <div className="text-[9px] font-bold text-white font-mono uppercase">Weekly</div>
+                            <div className="text-[10px] font-bold text-white font-mono uppercase">Weekly</div>
                         </button>
                         <button
                             onClick={() => setSummaryType('MONTHLY')}
                             className="bg-system-dark/50 border border-system-border p-3 rounded-sm hover:border-system-blue/50 transition-colors flex flex-col items-start gap-1 tap-feedback"
                         >
                             <CalendarIcon size={12} className="text-system-blue opacity-50" />
-                            <div className="text-[9px] font-bold text-white font-mono uppercase">Monthly</div>
+                            <div className="text-[10px] font-bold text-white font-mono uppercase">Monthly</div>
                         </button>
                     </div>
 
                     <div className="bg-system-dark/30 border border-system-border/30 p-3 rounded-sm flex justify-between items-center">
-                        <div className="text-[9px] text-system-text/40 font-mono uppercase">Streak</div>
+                        <div className="text-[10px] text-system-text/60 font-mono uppercase tracking-wider">Streak</div>
                         <div className="text-sm font-bold text-system-gold">{gameState.player.streak}D 🔥</div>
                     </div>
                 </div>
@@ -203,7 +204,7 @@ export const Dashboard: React.FC = () => {
                     <div className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-sm flex items-center justify-center">
                         <div className="flex flex-col items-center gap-4">
                             <div className="w-12 h-12 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
-                            <div className="flex items-center gap-2 text-cyan-500 font-mono text-[10px] uppercase tracking-widest animate-pulse">
+                            <div className="flex items-center gap-2 text-cyan-500 font-mono text-xs uppercase tracking-widest animate-pulse">
                                 <Cloud size={12} /> Syncing Neural Link...
                             </div>
                         </div>
@@ -388,7 +389,7 @@ export const Dashboard: React.FC = () => {
                 <div className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-sm flex items-center justify-center">
                     <div className="flex flex-col items-center gap-4">
                         <div className="w-12 h-12 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
-                        <div className="flex items-center gap-2 text-cyan-500 font-mono text-[10px] uppercase tracking-widest animate-pulse">
+                        <div className="flex items-center gap-2 text-cyan-500 font-mono text-xs uppercase tracking-widest animate-pulse">
                             <Cloud size={12} /> Syncing Neural Link...
                         </div>
                     </div>
