@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lock, Unlock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { X, Lock, Unlock, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
 import type { PlayerProfile } from '../types';
 import { STAGES } from '../data/stages';
 
@@ -23,29 +23,30 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ isOpen, onClose, p
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div className="fixed inset-0 z-[110] flex items-center justify-center md:p-4 bg-black/80 backdrop-blur-sm">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="bg-system-panel border-2 border-system-border w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+                        className="bg-system-panel border-2 border-system-border w-full h-full md:h-auto md:max-w-2xl md:max-h-[80vh] overflow-hidden flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.8)]"
                     >
                         {/* Header */}
-                        <div className="p-6 border-b border-system-border flex justify-between items-center bg-gradient-to-r from-system-blue/10 to-transparent">
+                        <div className="p-4 md:p-6 border-b border-system-border flex justify-between items-center bg-gradient-to-r from-system-blue/10 to-transparent">
                             <div>
-                                <h2 className="text-2xl font-black text-white tracking-widest uppercase italic flex items-center gap-3">
-                                    <ShieldCheck className="text-system-blue" size={24} />
+                                <h2 className="text-lg md:text-2xl font-black text-white tracking-widest uppercase italic flex items-center gap-2 md:gap-3">
+                                    <ShieldCheck className="text-system-blue" size={20} />
                                     Stage Progression
                                 </h2>
                                 <p className="text-[10px] font-mono text-system-text/40 uppercase tracking-[0.2em] mt-1">Status: {currentStage.name}</p>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                                <X size={20} className="text-system-text/60" />
+                            <button onClick={onClose} className="p-2 active:bg-white/5 rounded-full transition-colors tap-feedback">
+                                <ArrowLeft size={20} className="text-system-text/60 md:hidden" />
+                                <X size={20} className="text-system-text/60 hidden md:block" />
                             </button>
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
                             {/* Current Stage Details */}
                             <section>
                                 <div className="flex items-center gap-3 mb-4">
@@ -120,7 +121,7 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ isOpen, onClose, p
                                         {canAdvance && (
                                             <button
                                                 onClick={() => onAdvance?.(nextStage.id)}
-                                                className="w-full py-3 bg-system-gold text-black font-black uppercase tracking-[0.2em] text-sm hover:bg-white transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                                                className="w-full py-3 bg-system-gold text-black font-black uppercase tracking-[0.2em] text-sm active:bg-white transition-all shadow-lg tap-feedback flex items-center justify-center gap-2"
                                             >
                                                 INITIALIZE EVOLUTION <ArrowRight size={16} />
                                             </button>
@@ -140,7 +141,7 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ isOpen, onClose, p
 
                         {/* Footer */}
                         <div className="p-4 bg-system-dark/50 border-t border-system-border text-center">
-                            <p className="text-[10px] font-mono text-system-text/30 uppercase tracking-[0.3em]">System Identity Layer v1.2</p>
+                            <p className="text-[10px] font-mono text-system-text/30 uppercase tracking-[0.3em]">System Identity Layer v1.6</p>
                         </div>
                     </motion.div>
                 </div>

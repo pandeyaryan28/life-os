@@ -32,22 +32,22 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
 
     return (
         <div className="bg-system-panel border border-system-border rounded-sm shadow-lg h-full flex flex-col">
-            <div className="p-4 border-b border-system-border flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-                <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+            <div className="p-3 md:p-4 border-b border-system-border flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+                <h2 className="text-base md:text-lg font-bold text-white tracking-wide flex items-center gap-2">
                     <AlertTriangle size={18} className="text-system-blue" />
                     QUEST LOG
                 </h2>
 
                 <div className="flex flex-wrap gap-2 items-center">
-                    <div className="flex bg-system-dark border border-system-border p-0.5 rounded-sm">
+                    <div className="flex bg-system-dark border border-system-border p-0.5 rounded-sm overflow-x-auto">
                         {(['ALL', 'MAIN', 'SIDE', 'DAILY'] as const).map(type => (
                             <button
                                 key={type}
                                 onClick={() => setFilter(type)}
-                                className={`px-3 py-1 text-xs font-mono transition-all
+                                className={`px-3 py-1.5 text-xs font-mono transition-all tap-feedback whitespace-nowrap
                                     ${filter === type
                                         ? 'bg-system-blue text-white shadow-[0_0_10px_rgba(0,170,255,0.3)]'
-                                        : 'text-system-text/60 hover:text-system-text hover:bg-white/5'
+                                        : 'text-system-text/60 active:text-system-text active:bg-white/5'
                                     }`}
                             >
                                 {type}
@@ -57,7 +57,7 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
 
                     <button
                         onClick={onCreateQuest}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold font-mono bg-system-blue/10 text-system-blue border border-system-blue hover:bg-system-blue hover:text-white transition-all shadow-[0_0_10px_rgba(0,170,255,0.1)]"
+                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold font-mono bg-system-blue/10 text-system-blue border border-system-blue hover:bg-system-blue hover:text-white transition-all shadow-[0_0_10px_rgba(0,170,255,0.1)] tap-feedback"
                     >
                         <Plus size={14} />
                         ADD QUEST
@@ -65,20 +65,20 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[400px]">
+            <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 min-h-[300px] md:min-h-[400px]">
                 <AnimatePresence mode="popLayout">
                     {filteredQuests.length === 0 ? (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col items-center justify-center py-20 text-center"
+                            className="flex flex-col items-center justify-center py-16 md:py-20 text-center"
                         >
                             <div className="text-system-text/40 font-mono text-sm mb-4">
                                 NO ACTIVE {filter !== 'ALL' ? filter : ''} QUESTS DETECTED
                             </div>
                             <button
                                 onClick={onCreateQuest}
-                                className="text-xs font-mono text-system-blue border-b border-system-blue/30 hover:border-system-blue transition-colors pb-0.5"
+                                className="text-xs font-mono text-system-blue border-b border-system-blue/30 hover:border-system-blue transition-colors pb-0.5 tap-feedback py-2"
                             >
                                 INITIALIZE NEW OBJECTIVE
                             </button>
@@ -91,7 +91,7 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95, height: 0 }}
-                                className="border border-system-border bg-system-dark/50 p-4 hover:border-system-blue/50 transition-colors group relative overflow-hidden"
+                                className="border border-system-border bg-system-dark/50 p-3 md:p-4 active:border-system-blue/50 transition-colors group relative overflow-hidden"
                             >
                                 {/* Rank/Difficulty Indicator */}
                                 <div className={`absolute top-0 right-0 px-3 py-0.5 text-[10px] font-bold font-mono bg-system-border/30 border-l border-b border-system-border ${getDifficultyColor(quest.difficulty)}`}>
@@ -99,16 +99,17 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                 </div>
 
                                 <div className="flex justify-between items-start mb-2 pr-16 relative">
+                                    {/* Delete button — always visible on mobile via opacity */}
                                     <button
                                         onClick={() => {
                                             if (window.confirm('Delete this quest?')) {
                                                 onDelete(quest.id);
                                             }
                                         }}
-                                        className="absolute -right-2 top-0 p-1 text-system-text/20 hover:text-system-danger transition-colors opacity-0 group-hover:opacity-100"
+                                        className="absolute -right-2 top-0 p-2 text-system-text/30 active:text-system-danger transition-colors md:opacity-0 md:group-hover:opacity-100 tap-feedback"
                                         title="Delete Quest"
                                     >
-                                        <X size={14} />
+                                        <X size={16} />
                                     </button>
                                     <div>
                                         <div className="text-[10px] font-mono text-system-blue/60 uppercase mb-0.5">
@@ -117,7 +118,7 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                                 <span className="ml-2 text-system-gold">STREAK: {quest.streak}</span>
                                             )}
                                         </div>
-                                        <h3 className="font-bold text-system-text group-hover:text-system-blue transition-colors flex items-center gap-2">
+                                        <h3 className="font-bold text-system-text text-sm md:text-base transition-colors flex items-center gap-2 flex-wrap">
                                             {quest.title}
                                             {quest.goalId && (
                                                 <span className="text-[8px] bg-system-blue/20 text-system-blue px-1.5 py-0.5 rounded-full border border-system-blue/30 uppercase tracking-tighter">
@@ -134,33 +135,33 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                 </div>
 
                                 {quest.description && (
-                                    <p className="text-sm text-system-text/70 mb-4 font-mono leading-relaxed border-l-2 border-system-border/30 pl-3">
+                                    <p className="text-xs md:text-sm text-system-text/70 mb-3 md:mb-4 font-mono leading-relaxed border-l-2 border-system-border/30 pl-3">
                                         {quest.description}
                                     </p>
                                 )}
 
                                 {quest.status === 'COMPLETED' && quest.type === 'DAILY' && (
-                                    <div className="mb-4 text-xs font-mono text-green-400 bg-green-400/10 p-2 border border-green-400/20 rounded-sm flex items-center gap-2">
+                                    <div className="mb-3 md:mb-4 text-xs font-mono text-green-400 bg-green-400/10 p-2 border border-green-400/20 rounded-sm flex items-center gap-2">
                                         <CheckSquare size={14} /> COMPLETED TODAY
                                     </div>
                                 )}
 
                                 {quest.subtasks && quest.subtasks.length > 0 && quest.status === 'ACTIVE' && (
-                                    <div className="space-y-1 mb-4 pl-1">
+                                    <div className="space-y-1 mb-3 md:mb-4 pl-1">
                                         {quest.subtasks.map(task => (
-                                            <div key={task.id} className="flex items-center gap-2 text-xs text-system-text/60">
-                                                {task.completed ? <CheckSquare size={12} className="text-system-blue" /> : <Square size={12} />}
+                                            <div key={task.id} className="flex items-center gap-2 text-xs text-system-text/60 py-1">
+                                                {task.completed ? <CheckSquare size={14} className="text-system-blue" /> : <Square size={14} />}
                                                 <span className={task.completed ? 'line-through text-system-text/40' : ''}>{task.text}</span>
                                             </div>
                                         ))}
                                     </div>
                                 )}
 
-                                <div className="flex justify-between items-center mt-4 pt-3 border-t border-system-border/30">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-3 md:mt-4 pt-3 border-t border-system-border/30 gap-3">
                                     <div className="flex items-center gap-4">
                                         <div className="flex flex-col">
                                             <span className="text-[8px] font-mono text-system-text/40 uppercase">Rewards</span>
-                                            <div className="flex gap-3 text-xs font-mono">
+                                            <div className="flex gap-3 text-xs font-mono flex-wrap">
                                                 <span className="text-system-gold">+{quest.rewards.xp} XP</span>
                                                 {quest.rewards.credits !== undefined && quest.rewards.credits > 0 && <span className="text-white">+{quest.rewards.credits} C</span>}
                                                 {quest.rewards.stats && Object.entries(quest.rewards.stats).map(([stat, val]) => (
@@ -171,16 +172,16 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
                                     </div>
 
                                     {quest.status === 'ACTIVE' && (
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 w-full sm:w-auto">
                                             <button
                                                 onClick={() => onFail(quest.id)}
-                                                className="px-3 py-1.5 text-xs font-mono text-system-danger/60 hover:text-system-danger hover:bg-system-danger/10 border border-transparent hover:border-system-danger transition-colors uppercase"
+                                                className="flex-1 sm:flex-none px-3 py-2.5 text-xs font-mono text-system-danger/80 active:text-system-danger active:bg-system-danger/10 border border-system-danger/30 transition-colors uppercase tap-feedback"
                                             >
                                                 Abandon
                                             </button>
                                             <button
                                                 onClick={() => onComplete(quest.id)}
-                                                className="px-4 py-1.5 text-xs font-bold font-mono bg-system-blue text-white hover:bg-system-blue/80 transition-all shadow-[0_0_10px_rgba(0,170,255,0.2)] uppercase tracking-wider"
+                                                className="flex-1 sm:flex-none px-4 py-2.5 text-xs font-bold font-mono bg-system-blue text-white active:bg-system-blue/80 transition-all shadow-[0_0_10px_rgba(0,170,255,0.2)] uppercase tracking-wider tap-feedback"
                                             >
                                                 Complete
                                             </button>
@@ -195,4 +196,3 @@ export const QuestLog: React.FC<QuestLogProps> = ({ quests, onComplete, onFail, 
         </div>
     );
 };
-

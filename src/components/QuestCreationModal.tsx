@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Plus, Minus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Plus, Minus, ArrowLeft } from 'lucide-react';
 import type { Quest, QuestType, Stats, Goal } from '../types';
 
 interface QuestCreationModalProps {
@@ -26,20 +26,30 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
     const [selectedStats, setSelectedStats] = useState<Partial<Record<keyof Stats, number>>>({});
     const [deadline, setDeadline] = useState('');
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen && initialGoalId) {
             setSelectedGoalId(initialGoalId);
         }
     }, [isOpen, initialGoalId]);
 
     // Esc key support
-    React.useEffect(() => {
+    useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
         };
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
+
+    // Prevent background scrolling when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+        return () => document.body.classList.remove('modal-open');
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -91,19 +101,20 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="bg-system-panel border-2 border-system-blue w-full max-w-lg shadow-[0_0_30px_rgba(0,170,255,0.2)] overflow-hidden">
-                <div className="flex justify-between items-center p-4 border-b border-system-blue/30 bg-system-blue/5">
-                    <h2 className="text-xl font-bold text-white tracking-widest uppercase flex items-center gap-2">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center md:p-4 bg-black/80 backdrop-blur-sm">
+            <div className="bg-system-panel border-2 border-system-blue w-full h-full md:h-auto md:max-w-lg md:max-h-[90vh] shadow-[0_0_30px_rgba(0,170,255,0.2)] overflow-hidden flex flex-col">
+                <div className="flex justify-between items-center p-4 border-b border-system-blue/30 bg-system-blue/5 flex-shrink-0">
+                    <h2 className="text-base md:text-xl font-bold text-white tracking-widest uppercase flex items-center gap-2">
                         <Plus size={20} className="text-system-blue" />
                         Initialize New Quest
                     </h2>
-                    <button onClick={onClose} className="text-system-text/60 hover:text-white transition-colors">
-                        <X size={24} />
+                    <button onClick={onClose} className="p-2 text-system-text/60 active:text-white transition-colors tap-feedback">
+                        <ArrowLeft size={22} className="md:hidden" />
+                        <X size={22} className="hidden md:block" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-5 md:space-y-6 flex-1 overflow-y-auto">
                     {/* Basic Info */}
                     <div className="space-y-4">
                         <div>
@@ -112,7 +123,7 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                                 required
                                 value={title}
                                 onChange={e => setTitle(e.target.value)}
-                                className="w-full bg-system-dark border border-system-border p-2 text-white font-mono focus:border-system-blue outline-none transition-colors"
+                                className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors text-sm"
                                 placeholder="Enter objective..."
                             />
                         </div>
@@ -122,18 +133,18 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                             <textarea
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
-                                className="w-full bg-system-dark border border-system-border p-2 text-white font-mono focus:border-system-blue outline-none transition-colors h-20 resize-none"
+                                className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors h-20 resize-none text-sm"
                                 placeholder="Details..."
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 md:gap-4">
                             <div>
                                 <label className="block text-xs font-mono text-system-blue uppercase mb-1">Type</label>
                                 <select
                                     value={type}
                                     onChange={e => setType(e.target.value as QuestType)}
-                                    className="w-full bg-system-dark border border-system-border p-2 text-white font-mono focus:border-system-blue outline-none transition-colors"
+                                    className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors text-sm"
                                 >
                                     <option value="MAIN">MAIN</option>
                                     <option value="SIDE">SIDE</option>
@@ -145,7 +156,7 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                                 <select
                                     value={difficulty}
                                     onChange={e => setDifficulty(e.target.value as Quest['difficulty'])}
-                                    className="w-full bg-system-dark border border-system-border p-2 text-white font-mono focus:border-system-blue outline-none transition-colors"
+                                    className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors text-sm"
                                 >
                                     {['E', 'D', 'C', 'B', 'A', 'S'].map(rank => (
                                         <option key={rank} value={rank}>{rank}</option>
@@ -155,13 +166,13 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                         </div>
 
                         {/* Goal Link Selection & Deadline */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                             <div>
                                 <label className="block text-xs font-mono text-system-blue uppercase mb-1">Link to Goal (Optional)</label>
                                 <select
                                     value={selectedGoalId}
                                     onChange={e => setSelectedGoalId(e.target.value)}
-                                    className="w-full bg-system-dark border border-system-border p-2 text-white font-mono focus:border-system-blue outline-none transition-colors"
+                                    className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors text-sm"
                                 >
                                     <option value="">NO GOAL LINKED</option>
                                     {goals.map(goal => (
@@ -177,7 +188,7 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                                     type="datetime-local"
                                     value={deadline}
                                     onChange={e => setDeadline(e.target.value)}
-                                    className="w-full bg-system-dark border border-system-border p-2 text-white font-mono focus:border-system-blue outline-none transition-colors"
+                                    className="w-full bg-system-dark border border-system-border p-3 text-white font-mono focus:border-system-blue outline-none transition-colors text-sm"
                                 />
                             </div>
                         </div>
@@ -186,7 +197,7 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                     {/* Rewards */}
                     <div className="pt-4 border-t border-system-border">
                         <h3 className="text-xs font-mono text-system-gold uppercase mb-3">Rewards (User Defined)</h3>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 md:gap-4">
                             <div>
                                 <label className="block text-xs font-mono text-system-text/60 uppercase mb-1">XP</label>
                                 <input
@@ -194,7 +205,7 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                                     min="0"
                                     value={xpReward}
                                     onChange={e => setXpReward(Number(e.target.value))}
-                                    className="w-full bg-system-dark border border-system-border p-2 text-white font-mono outline-none"
+                                    className="w-full bg-system-dark border border-system-border p-3 text-white font-mono outline-none text-sm"
                                 />
                             </div>
                             <div>
@@ -204,7 +215,7 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                                     min="0"
                                     value={creditReward}
                                     onChange={e => setCreditReward(Number(e.target.value))}
-                                    className="w-full bg-system-dark border border-system-border p-2 text-white font-mono outline-none"
+                                    className="w-full bg-system-dark border border-system-border p-3 text-white font-mono outline-none text-sm"
                                 />
                             </div>
                         </div>
@@ -219,7 +230,7 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                                     <button
                                         type="button"
                                         onClick={() => toggleStat(stat)}
-                                        className={`flex-1 text-left px-3 py-1.5 text-xs font-mono border transition-all ${selectedStats[stat] !== undefined
+                                        className={`flex-1 text-left px-3 py-2 text-xs font-mono border transition-all tap-feedback ${selectedStats[stat] !== undefined
                                             ? 'bg-system-blue/20 border-system-blue text-system-blue'
                                             : 'bg-system-dark border-system-border text-system-text/40'
                                             }`}
@@ -231,17 +242,17 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                                             <button
                                                 type="button"
                                                 onClick={() => updateStatValue(stat, -1)}
-                                                className="p-1 hover:text-system-blue transition-colors"
+                                                className="p-2 active:text-system-blue transition-colors tap-feedback"
                                             >
-                                                <Minus size={12} />
+                                                <Minus size={14} />
                                             </button>
-                                            <span className="w-4 text-center text-xs font-mono text-system-gold">{selectedStats[stat]}</span>
+                                            <span className="w-5 text-center text-xs font-mono text-system-gold">{selectedStats[stat]}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => updateStatValue(stat, 1)}
-                                                className="p-1 hover:text-system-blue transition-colors"
+                                                className="p-2 active:text-system-blue transition-colors tap-feedback"
                                             >
-                                                <Plus size={12} />
+                                                <Plus size={14} />
                                             </button>
                                         </div>
                                     )}
@@ -250,17 +261,17 @@ export const QuestCreationModal: React.FC<QuestCreationModalProps> = ({ isOpen, 
                         </div>
                     </div>
 
-                    <div className="pt-6 flex gap-3">
+                    <div className="pt-4 md:pt-6 flex gap-3">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-3 border border-system-border text-system-text/60 font-mono hover:bg-white/5 transition-colors"
+                            className="flex-1 py-3 border border-system-border text-system-text/60 font-mono active:bg-white/5 transition-colors tap-feedback"
                         >
                             CANCEL
                         </button>
                         <button
                             type="submit"
-                            className="flex-2 py-3 bg-system-blue text-white font-bold tracking-widest hover:bg-system-blue/80 transition-all shadow-[0_0_15px_rgba(0,170,255,0.4)]"
+                            className="flex-[2] py-3 bg-system-blue text-white font-bold tracking-widest active:bg-system-blue/80 transition-all shadow-[0_0_15px_rgba(0,170,255,0.4)] tap-feedback"
                         >
                             START QUEST
                         </button>

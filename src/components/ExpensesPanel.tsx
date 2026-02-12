@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, Plus, Repeat, History, TrendingDown } from 'lucide-react';
+import { DollarSign, Plus, Repeat, History, TrendingDown, ArrowLeft, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Expense } from '../types';
 
@@ -50,34 +50,34 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
     };
 
     return (
-        <div className="bg-system-panel border border-system-border rounded-sm shadow-xl flex flex-col h-full overflow-hidden">
-            <div className="p-4 border-b border-system-border bg-system-dark/30 flex justify-between items-center">
-                <h2 className="text-sm font-black text-white tracking-[0.2em] uppercase flex items-center gap-2">
+        <div className="bg-system-panel border border-system-border rounded-sm shadow-xl flex flex-col h-full overflow-hidden relative">
+            <div className="p-3 md:p-4 border-b border-system-border bg-system-dark/30 flex justify-between items-center">
+                <h2 className="text-xs md:text-sm font-black text-white tracking-[0.2em] uppercase flex items-center gap-2">
                     <DollarSign size={16} className="text-system-gold" />
                     Economy System
                 </h2>
                 <button
                     onClick={() => setIsAdding(true)}
-                    className="p-1 hover:bg-system-blue/10 rounded-sm text-system-blue transition-colors border border-system-blue/30"
+                    className="p-2 active:bg-system-blue/10 rounded-sm text-system-blue transition-colors border border-system-blue/30 tap-feedback"
                 >
                     <Plus size={16} />
                 </button>
             </div>
 
-            <div className="p-4 grid grid-cols-2 gap-4 bg-system-dark/20 border-b border-system-border">
+            <div className="p-3 md:p-4 grid grid-cols-2 gap-3 md:gap-4 bg-system-dark/20 border-b border-system-border">
                 <div className="space-y-1">
                     <p className="text-[10px] font-mono text-system-text/40 uppercase">Balance</p>
-                    <p className="text-xl font-black text-system-gold font-mono">{credits.toLocaleString()} <span className="text-xs opacity-50">C</span></p>
+                    <p className="text-lg md:text-xl font-black text-system-gold font-mono">{credits.toLocaleString()} <span className="text-xs opacity-50">C</span></p>
                 </div>
                 <div className="space-y-1">
                     <p className="text-[10px] font-mono text-system-text/40 uppercase">Today's Spends</p>
-                    <p className="text-xl font-black font-mono text-white">
+                    <p className="text-lg md:text-xl font-black font-mono text-white">
                         {todayNetChange.toLocaleString()} <span className="text-xs opacity-50">C</span>
                     </p>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-6">
                 {/* Recurring Subscriptions */}
                 {recurringExpenses.length > 0 && (
                     <div>
@@ -86,23 +86,23 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                         </h3>
                         <div className="space-y-2">
                             {recurringExpenses.map(exp => (
-                                <div key={exp.id} className={`p-3 border rounded-sm flex justify-between items-center group transition-colors ${exp.pendingPayment ? 'bg-system-danger/10 border-system-danger/50' : 'bg-system-dark/50 border-system-border/50 hover:border-system-blue/30'}`}>
-                                    <div>
-                                        <p className="text-xs font-bold text-white uppercase flex items-center gap-2">
-                                            {exp.name}
-                                            {exp.pendingPayment && <span className="text-[8px] bg-system-danger text-white px-1 py-0.5 rounded-sm animate-pulse">DUE</span>}
+                                <div key={exp.id} className={`p-3 border rounded-sm flex justify-between items-center group transition-colors ${exp.pendingPayment ? 'bg-system-danger/10 border-system-danger/50' : 'bg-system-dark/50 border-system-border/50 active:border-system-blue/30'}`}>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-xs font-bold text-white uppercase flex items-center gap-2 flex-wrap">
+                                            <span className="truncate">{exp.name}</span>
+                                            {exp.pendingPayment && <span className="text-[8px] bg-system-danger text-white px-1 py-0.5 rounded-sm animate-pulse flex-shrink-0">DUE</span>}
                                         </p>
                                         <p className="text-[9px] font-mono text-system-text/40 uppercase">{exp.frequency} • {exp.category}</p>
                                     </div>
-                                    <div className="text-right flex items-center gap-3">
+                                    <div className="text-right flex items-center gap-2 md:gap-3 flex-shrink-0 ml-2">
                                         <div>
                                             <p className="text-xs font-black text-system-danger font-mono">-{exp.amount} C</p>
-                                            <p className="text-[8px] font-mono text-system-text/30">NEXT: {exp.pendingPayment ? 'NOW' : 'AUTO'}</p>
+                                            <p className="text-[8px] font-mono text-system-text/30">{exp.pendingPayment ? 'NOW' : 'AUTO'}</p>
                                         </div>
                                         {exp.pendingPayment && (
                                             <button
                                                 onClick={() => onPayExpense(exp.id)}
-                                                className="px-3 py-1 bg-system-danger hover:bg-red-600 text-white text-[9px] font-black uppercase tracking-wider rounded-sm transition-all shadow-[0_0_10px_rgba(255,0,0,0.3)]"
+                                                className="px-3 py-2 bg-system-danger active:bg-red-600 text-white text-[9px] font-black uppercase tracking-wider rounded-sm transition-all shadow-[0_0_10px_rgba(255,0,0,0.3)] tap-feedback"
                                             >
                                                 PAY
                                             </button>
@@ -127,17 +127,17 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                 .slice()
                                 .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
                                 .map(exp => (
-                                    <div key={exp.id} className="flex justify-between items-center py-2 border-b border-system-border/20 last:border-0 hover:bg-white/5 px-2 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-1.5 bg-system-danger/10 text-system-danger rounded-sm">
+                                    <div key={exp.id} className="flex justify-between items-center py-2.5 border-b border-system-border/20 last:border-0 active:bg-white/5 px-2 transition-colors">
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                            <div className="p-1.5 bg-system-danger/10 text-system-danger rounded-sm flex-shrink-0">
                                                 <TrendingDown size={12} />
                                             </div>
-                                            <div>
-                                                <p className="text-[11px] font-bold text-white uppercase leading-none mb-1">{exp.name}</p>
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-bold text-white uppercase leading-none mb-1 truncate">{exp.name}</p>
                                                 <p className="text-[9px] font-mono text-system-text/40">{new Date(exp.timestamp).toLocaleString()}</p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
+                                        <div className="text-right flex-shrink-0 ml-2">
                                             <p className="text-[11px] font-black text-system-danger font-mono">-{exp.amount}</p>
                                             <p className="text-[8px] font-mono text-system-text/30 uppercase">{exp.category}</p>
                                         </div>
@@ -148,38 +148,39 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                 </div>
             </div>
 
-            {/* Add Expense Modal Overly */}
+            {/* Add Expense Modal Overlay — full-screen on mobile */}
             <AnimatePresence>
                 {isAdding && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-50 bg-system-dark/95 backdrop-blur-sm p-4 flex flex-col"
+                        className="fixed inset-0 md:absolute md:inset-0 z-50 bg-system-dark/95 backdrop-blur-sm p-4 flex flex-col"
                     >
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-black text-white uppercase tracking-widest text-sm flex items-center gap-2">
                                 <Plus size={16} className="text-system-blue" />
                                 Log Real-World Expense
                             </h3>
-                            <button onClick={() => setIsAdding(false)} className="text-system-text/40 hover:text-white transition-colors">
-                                <Plus size={20} className="rotate-45" />
+                            <button onClick={() => setIsAdding(false)} className="p-2 text-system-text/40 active:text-white transition-colors tap-feedback">
+                                <ArrowLeft size={20} className="md:hidden" />
+                                <X size={20} className="hidden md:block" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto">
                             <div>
                                 <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Expense Name</label>
                                 <input
                                     required
                                     value={name}
                                     onChange={e => setName(e.target.value)}
-                                    className="w-full bg-system-panel border border-system-border p-2 font-mono text-xs text-white focus:border-system-blue outline-none"
+                                    className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none"
                                     placeholder="e.g. Rent, Coffee, Gym..."
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Amount (Numeric)</label>
                                     <input
@@ -187,7 +188,7 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                         type="number"
                                         value={amount}
                                         onChange={e => setAmount(Number(e.target.value))}
-                                        className="w-full bg-system-panel border border-system-border p-2 font-mono text-xs text-white focus:border-system-blue outline-none"
+                                        className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none"
                                     />
                                 </div>
                                 <div>
@@ -196,18 +197,18 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                         required
                                         value={category}
                                         onChange={e => setCategory(e.target.value)}
-                                        className="w-full bg-system-panel border border-system-border p-2 font-mono text-xs text-white focus:border-system-blue outline-none"
+                                        className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-[9px] font-mono text-system-blue uppercase mb-1">Type</label>
                                     <select
                                         value={type}
                                         onChange={e => setType(e.target.value as any)}
-                                        className="w-full bg-system-panel border border-system-border p-2 font-mono text-xs text-white focus:border-system-blue outline-none"
+                                        className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none"
                                     >
                                         <option value="ONE_TIME">ONE-TIME</option>
                                         <option value="RECURRING">RECURRING</option>
@@ -219,7 +220,7 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                         <select
                                             value={frequency}
                                             onChange={e => setFrequency(e.target.value as any)}
-                                            className="w-full bg-system-panel border border-system-border p-2 font-mono text-xs text-white focus:border-system-blue outline-none"
+                                            className="w-full bg-system-panel border border-system-border p-3 font-mono text-xs text-white focus:border-system-blue outline-none"
                                         >
                                             <option value="DAILY">DAILY</option>
                                             <option value="WEEKLY">WEEKLY</option>
@@ -234,17 +235,17 @@ export const ExpensesPanel: React.FC<ExpensesPanelProps> = ({
                                 <textarea
                                     value={notes}
                                     onChange={e => setNotes(e.target.value)}
-                                    className="w-full bg-system-panel border border-system-border p-2 font-mono text-[10px] text-white focus:border-system-blue outline-none h-16 resize-none"
+                                    className="w-full bg-system-panel border border-system-border p-3 font-mono text-[10px] text-white focus:border-system-blue outline-none h-20 resize-none"
                                 />
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full py-3 bg-system-danger/20 hover:bg-system-danger/40 border border-system-danger text-system-danger font-black uppercase tracking-[0.2em] transition-all text-xs"
+                                className="w-full py-3.5 bg-system-danger/20 active:bg-system-danger/40 border border-system-danger text-system-danger font-black uppercase tracking-[0.2em] transition-all text-xs tap-feedback"
                             >
                                 {type === 'ONE_TIME' ? 'Deduct & Record Transaction' : 'Add to Bills (No Deduction)'}
                             </button>
-                            <p className="text-[8px] font-mono text-system-text/30 text-center uppercase tracking-tighter">
+                            <p className="text-[8px] font-mono text-system-text/30 text-center uppercase tracking-tighter pb-4">
                                 {type === 'ONE_TIME'
                                     ? 'Warning: Deductions are permanent and audited in the ledger.'
                                     : 'Recurring bills are added to your economy list and paid manually when due.'}

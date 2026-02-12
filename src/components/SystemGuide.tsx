@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, BookOpen, Target, Zap, HelpCircle, Layers } from 'lucide-react';
+import { X, BookOpen, Target, Zap, HelpCircle, Layers, ArrowLeft } from 'lucide-react';
 import { STAGES } from '../data/stages';
 
 interface SystemGuideProps {
@@ -27,24 +27,25 @@ export const SystemGuide: React.FC<SystemGuideProps> = ({ isOpen, onClose }) => 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-system-panel border-2 border-system-border w-full max-w-4xl h-[85vh] overflow-hidden flex flex-col shadow-2xl"
+                    className="bg-system-panel border-2 border-system-border w-full h-full md:h-[85vh] md:max-w-4xl overflow-hidden flex flex-col shadow-2xl"
                 >
                     {/* Header */}
-                    <div className="p-6 border-b border-system-border flex justify-between items-center bg-system-blue/5">
-                        <div className="flex items-center gap-3">
-                            <BookOpen className="text-system-blue" size={24} />
-                            <div>
-                                <h2 className="text-xl font-black text-white tracking-widest uppercase italic">System Guide & Manual</h2>
-                                <p className="text-[10px] font-mono text-system-text/40 uppercase tracking-widest mt-1">LIFE OS v1.5.0 // Documentation Layer</p>
+                    <div className="p-4 md:p-6 border-b border-system-border flex justify-between items-center bg-system-blue/5">
+                        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                            <BookOpen className="text-system-blue flex-shrink-0" size={20} />
+                            <div className="min-w-0">
+                                <h2 className="text-base md:text-xl font-black text-white tracking-widest uppercase italic truncate">System Guide</h2>
+                                <p className="text-[10px] font-mono text-system-text/40 uppercase tracking-widest mt-1">LIFE OS v1.6.0 // Documentation Layer</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors border border-system-border/30 text-system-text/60 hover:text-white">
-                            <X size={20} />
+                        <button onClick={onClose} className="p-2 active:bg-white/5 rounded-full transition-colors border border-system-border/30 text-system-text/60 tap-feedback flex-shrink-0">
+                            <ArrowLeft size={20} className="md:hidden" />
+                            <X size={20} className="hidden md:block" />
                         </button>
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 overflow-y-auto p-8 space-y-10 font-sans">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 md:space-y-10 font-sans">
                         {/* Intro */}
                         <section>
                             <h3 className="text-sm font-black text-system-blue uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
@@ -140,7 +141,7 @@ export const SystemGuide: React.FC<SystemGuideProps> = ({ isOpen, onClose }) => 
                     <div className="p-6 bg-system-dark border-t border-system-border flex flex-col items-center">
                         <button
                             onClick={onClose}
-                            className="px-10 py-3 bg-system-blue text-white font-black uppercase tracking-[0.3em] text-xs hover:bg-white hover:text-black transition-all active:scale-95 shadow-lg"
+                            className="px-10 py-3 bg-system-blue text-white font-black uppercase tracking-[0.3em] text-xs active:bg-white active:text-black transition-all tap-feedback shadow-lg w-full md:w-auto"
                         >
                             Understood
                         </button>

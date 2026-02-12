@@ -10,43 +10,297 @@
   --system-text: #e0e0e0;
   --system-gold: #ffd700;
   --system-danger: #ff4444;
+  --bottom-nav-height: 0px;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* === BASE === */
 body {
   background-color: var(--system-dark);
   color: var(--system-text);
   font-family: 'Inter', sans-serif;
-  overflow: hidden; /* Prevent scrolling, app-like feel */
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--system-dark); 
-}
-::-webkit-scrollbar-thumb {
-  background: var(--system-border); 
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--system-blue); 
+/* === SCROLLBAR (Desktop) === */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--system-dark); }
+::-webkit-scrollbar-thumb { background: var(--system-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--system-blue); }
+
+/* === SYSTEM UTILITIES === */
+.system-border { border: 1px solid var(--system-border); }
+.system-panel { background-color: var(--system-panel); border: 1px solid var(--system-border); }
+.text-glow { text-shadow: 0 0 10px rgba(0, 170, 255, 0.5); }
+.border-glow { box-shadow: 0 0 10px rgba(0, 170, 255, 0.2); }
+
+/* === TAP FEEDBACK === */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* System Utilities */
-.system-border {
+.tap-feedback {
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+.tap-feedback:active {
+  transform: scale(0.96);
+  filter: brightness(0.85);
+}
+
+/* === OFFLINE INDICATOR === */
+.offline-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: var(--system-danger);
+  color: white;
+  text-align: center;
+  padding: 4px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* === INSTALL PROMPT === */
+.install-prompt {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 12px);
+  left: 12px;
+  right: 12px;
+  z-index: 1000;
+  background: linear-gradient(135deg, rgba(0,170,255,0.15), rgba(0,170,255,0.05));
+  border: 1px solid rgba(0,170,255,0.3);
+  backdrop-filter: blur(20px);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* === MODAL — MOBILE FULLSCREEN === */
+@media (max-width: 767px) {
+  :root {
+    --bottom-nav-height: 64px;
+  }
+
+  .modal-overlay {
+    border-radius: 0 !important;
+  }
+
+  .modal-content {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Prevent background scroll when modal is open */
+  body.modal-open {
+    overflow: hidden !important;
+    position: fixed;
+    width: 100%;
+  }
+}
+
+/* === BOTTOM NAVIGATION BAR === */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+  padding-bottom: var(--safe-area-bottom);
+  background: linear-gradient(180deg, rgba(10,10,11,0.95), rgba(10,10,11,1));
+  border-top: 1px solid var(--system-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 12px;
+  min-width: 56px;
+  color: rgba(224, 224, 224, 0.4);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item.active {
+  color: var(--system-blue);
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.92);
+}
+
+.bottom-nav-item svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Hide bottom nav on desktop */
+@media (min-width: 768px) {
+  .bottom-nav { display: none; }
+  :root { --bottom-nav-height: 0px; }
+}
+
+/* === COMPACT PLAYER CARD (MOBILE) === */
+.player-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--system-panel);
   border: 1px solid var(--system-border);
+  border-radius: 4px;
 }
 
-.system-panel {
-  background-color: var(--system-panel);
-  border: 1px solid var(--system-border);
+.player-compact-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--system-blue), rgba(0,170,255,0.3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 900;
+  font-size: 18px;
+  color: white;
+  flex-shrink: 0;
 }
 
-.text-glow {
-  text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+.player-compact-info {
+  flex: 1;
+  min-width: 0;
 }
 
-.border-glow {
-  box-shadow: 0 0 10px rgba(0, 170, 255, 0.2);
+.player-compact-name {
+  font-weight: 900;
+  color: white;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-compact-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.player-compact-level {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--system-gold);
+  font-weight: 700;
+}
+
+.player-compact-credits {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--system-text);
+  opacity: 0.5;
+}
+
+.player-compact-xp-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--system-dark);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.player-compact-xp-fill {
+  height: 100%;
+  background: var(--system-gold);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+/* === RESPONSIVE BREAKPOINTS === */
+
+/* Mobile: ≤ 767px */
+@media (max-width: 767px) {
+  /* Hide scrollbar on mobile for cleaner look */
+  ::-webkit-scrollbar { width: 0; height: 0; }
+  
+  /* Make body scrollable but app-like */
+  body {
+    overflow: hidden;
+  }
+
+  /* Quest cards - full width */
+  .quest-card {
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 4px;
+  }
+
+  /* Buttons - thumb friendly */
+  button {
+    min-height: 40px;
+  }
+
+  /* Filter buttons slightly larger */
+  .filter-btn {
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+}
+
+/* Tablet: 768px–1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Desktop: ≥ 1024px */
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 3fr 6fr 3fr;
+  }
+}
+
+/* === NO HORIZONTAL SCROLL === */
+html, body, #root {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
