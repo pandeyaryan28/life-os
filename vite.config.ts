@@ -48,7 +48,21 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /^https:\/\/(firestore|identitytoolkit|securetoken)\.googleapis\.com\/.*/i,
+            // Firestore: NetworkFirst strategy ensures fresh data but allows offline access via cache fallback
+            urlPattern: /^https:\/\/(firestore)\.googleapis\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 86400 // 24 hours
+              },
+              networkTimeoutSeconds: 10 // Fallback to cache if network is slow
+            }
+          },
+          {
+            // Auth: NetworkOnly strategy prevents stale auth tokens/states
+            urlPattern: /^https:\/\/(identitytoolkit|securetoken)\.googleapis\.com\/.*/i,
             handler: 'NetworkOnly'
           },
           {

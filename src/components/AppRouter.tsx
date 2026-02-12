@@ -5,6 +5,8 @@ import { PublicRoute } from './routes/PublicRoute';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { AuthenticatedLayout } from './AuthenticatedLayout';
 import { OnboardingGate } from './OnboardingGate';
+import { SubscriptionProvider } from '../context/SubscriptionContext';
+import { MobileNavProvider } from '../context/MobileNavContext';
 const Login = lazy(() => import('./Login').then(m => ({ default: m.Login })));
 
 /**
@@ -66,9 +68,13 @@ export const AppRouter: React.FC = () => {
                     <Route
                         element={
                             <ProtectedRoute>
-                                <OnboardingGate>
-                                    <AuthenticatedLayout />
-                                </OnboardingGate>
+                                <SubscriptionProvider>
+                                    <MobileNavProvider>
+                                        <OnboardingGate>
+                                            <AuthenticatedLayout />
+                                        </OnboardingGate>
+                                    </MobileNavProvider>
+                                </SubscriptionProvider>
                             </ProtectedRoute>
                         }
                     >
