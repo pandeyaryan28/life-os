@@ -8,33 +8,13 @@ interface MobileNavContextType {
     isMobile: boolean;
     isTablet: boolean;
     isDesktop: boolean;
-    isMobileDevice: boolean;
 }
 
 const MobileNavContext = createContext<MobileNavContextType | undefined>(undefined);
 
-/**
- * Detect if the device is truly a mobile/tablet device using
- * a combination of viewport width, user agent, and touch capability.
- * This is more reliable than viewport alone since desktop windows can be resized.
- */
-function detectMobileDevice(): boolean {
-    if (typeof navigator === 'undefined') return false;
-
-    const ua = navigator.userAgent || '';
-    const hasMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-    const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isSmallViewport = window.innerWidth <= 1023;
-
-    // Must have touch AND (mobile UA OR small viewport) to be considered mobile device
-    // This avoids treating desktop browsers with touch screens as mobile
-    return hasTouchScreen && (hasMobileUA || isSmallViewport);
-}
-
 export const MobileNavProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [activeTab, setActiveTab] = useState<MobileTab>('dashboard');
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
-    const [isMobileDevice, setIsMobileDevice] = useState(() => detectMobileDevice());
 
     useEffect(() => {
         let timeout: ReturnType<typeof setTimeout>;
@@ -42,7 +22,6 @@ export const MobileNavProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             clearTimeout(timeout);
             timeout = setTimeout(() => {
                 setWindowWidth(window.innerWidth);
-                setIsMobileDevice(detectMobileDevice());
             }, 100);
         };
 
@@ -58,7 +37,7 @@ export const MobileNavProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const isDesktop = windowWidth >= 1024;
 
     return (
-        <MobileNavContext.Provider value={{ activeTab, setActiveTab, isMobile, isTablet, isDesktop, isMobileDevice }}>
+        <MobileNavContext.Provider value={{ activeTab, setActiveTab, isMobile, isTablet, isDesktop }}>
             {children}
         </MobileNavContext.Provider>
     );
@@ -98,17 +77,21 @@ export const useOnlineStatus = () => {
  */
 function detectInstalledMode(): boolean {
     if (typeof window === 'undefined') return false;
-
-    // Standard check — Chrome, Edge, Firefox
     if (window.matchMedia('(display-mode: standalone)').matches) return true;
-
-    // iOS Safari fallback — (navigator as any).standalone is iOS-specific
     if ((navigator as any).standalone === true) return true;
-
     return false;
 }
 
-// Hook for PWA install prompt — MOBILE ONLY
+/**
+ * Hook for PWA install prompt.
+ * 
+ * ALWAYS captures the beforeinstallprompt event (regardless of device type).
+ * The component rendering the CTA is responsible for checking isMobile
+ * to decide whether to show the UI.
+ * 
+ * Returns isInstallable (event captured), isInstalled (standalone mode),
+ * and promptInstall function.
+ */
 export const useInstallPrompt = () => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isInstallable, setIsInstallable] = useState(false);
@@ -121,15 +104,10 @@ export const useInstallPrompt = () => {
             return;
         }
 
-        // If NOT a mobile device, do not show custom install UI
-        // Desktop users can still install via browser menu
-        if (!detectMobileDevice()) {
-            return;
-        }
-
         const handleBeforeInstall = (e: Event) => {
-            // Prevent the automatic mini-infobar from appearing
+            // Prevent Chrome's automatic mini-infobar
             e.preventDefault();
+            // Store the event so it can be triggered later
             setDeferredPrompt(e);
             setIsInstallable(true);
         };

@@ -26,16 +26,40 @@ body {
 }
 
 /* === SCROLLBAR (Desktop) === */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--system-dark); }
-::-webkit-scrollbar-thumb { background: var(--system-border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--system-blue); }
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--system-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--system-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--system-blue);
+}
 
 /* === SYSTEM UTILITIES === */
-.system-border { border: 1px solid var(--system-border); }
-.system-panel { background-color: var(--system-panel); border: 1px solid var(--system-border); }
-.text-glow { text-shadow: 0 0 10px rgba(0, 170, 255, 0.5); }
-.border-glow { box-shadow: 0 0 10px rgba(0, 170, 255, 0.2); }
+.system-border {
+  border: 1px solid var(--system-border);
+}
+
+.system-panel {
+  background-color: var(--system-panel);
+  border: 1px solid var(--system-border);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+}
+
+.border-glow {
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.2);
+}
 
 /* === TAP FEEDBACK === */
 .tap-target {
@@ -49,6 +73,7 @@ body {
 .tap-feedback {
   transition: transform 0.1s ease, background-color 0.15s ease;
 }
+
 .tap-feedback:active {
   transform: scale(0.96);
   filter: brightness(0.85);
@@ -79,8 +104,8 @@ body {
   left: 12px;
   right: 12px;
   z-index: 1000;
-  background: linear-gradient(135deg, rgba(0,170,255,0.15), rgba(0,170,255,0.05));
-  border: 1px solid rgba(0,170,255,0.3);
+  background: linear-gradient(135deg, rgba(0, 170, 255, 0.15), rgba(0, 170, 255, 0.05));
+  border: 1px solid rgba(0, 170, 255, 0.3);
   backdrop-filter: blur(20px);
   border-radius: 8px;
   padding: 16px;
@@ -124,7 +149,7 @@ body {
   z-index: 100;
   height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
   padding-bottom: var(--safe-area-bottom);
-  background: linear-gradient(180deg, rgba(10,10,11,0.95), rgba(10,10,11,1));
+  background: linear-gradient(180deg, rgba(10, 10, 11, 0.95), rgba(10, 10, 11, 1));
   border-top: 1px solid var(--system-border);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -166,7 +191,9 @@ body {
 
 /* Hide bottom nav on desktop */
 @media (min-width: 768px) {
-  .bottom-nav { display: none; }
+  .bottom-nav {
+    display: none;
+  }
 }
 
 /* === MOBILE: set bottom-nav-height === */
@@ -176,7 +203,10 @@ body {
   }
 
   /* Hide scrollbar on mobile for cleaner look */
-  ::-webkit-scrollbar { width: 0; height: 0; }
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 
   /* Make body scrollable but app-like */
   body {
@@ -202,12 +232,6 @@ body {
   }
 }
 
-/* === CONTENT SAFE AREA PADDING (mobile bottom nav) === */
-/* Applied via .mobile-content-safe class in Layout */
-.mobile-content-safe {
-  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 16px);
-}
-
 /* === COMPACT PLAYER CARD (MOBILE) === */
 .player-compact {
   display: flex;
@@ -223,7 +247,7 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 4px;
-  background: linear-gradient(135deg, var(--system-blue), rgba(0,170,255,0.3));
+  background: linear-gradient(135deg, var(--system-blue), rgba(0, 170, 255, 0.3));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,7 +329,9 @@ body {
 }
 
 /* === NO HORIZONTAL SCROLL === */
-html, body, #root {
+html,
+body,
+#root {
   max-width: 100vw;
   overflow-x: hidden;
 }

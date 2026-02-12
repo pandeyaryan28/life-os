@@ -4,11 +4,11 @@ import { useInstallPrompt, useMobileNav } from '../context/MobileNavContext';
 
 export const InstallPrompt: React.FC = () => {
     const { isInstallable, isInstalled, promptInstall } = useInstallPrompt();
-    const { isMobileDevice } = useMobileNav();
+    const { isMobile } = useMobileNav();
     const [dismissed, setDismissed] = useState(false);
 
-    // Only show on mobile devices, when installable, not already installed, and not dismissed
-    if (!isMobileDevice || !isInstallable || isInstalled || dismissed) return null;
+    // Gate: only show on mobile viewport, when installable, not installed, not dismissed
+    if (!isMobile || !isInstallable || isInstalled || dismissed) return null;
 
     return (
         <div className="install-prompt">
@@ -18,7 +18,7 @@ export const InstallPrompt: React.FC = () => {
                 </div>
                 <div className="min-w-0">
                     <p className="text-xs font-bold text-white uppercase tracking-wide">Install LIFE OS</p>
-                    <p className="text-[9px] font-mono text-system-text/50 uppercase mt-0.5">Use as a standalone app</p>
+                    <p className="text-[9px] font-mono text-system-text/50 uppercase mt-0.5">Add to home screen</p>
                 </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">

@@ -10,6 +10,9 @@ interface LayoutProps {
     children: React.ReactNode;
 }
 
+// Bottom nav actual height: 64px nav + safe area
+const BOTTOM_NAV_PX = 64;
+
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { logout } = useAuth();
     const { isMobile } = useMobileNav();
@@ -30,7 +33,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-50 bg-[length:100%_2px,3px_100%] pointer-events-none opacity-20"></div>
             )}
 
-            <main className="relative z-10 container mx-auto px-3 md:px-4 h-screen flex flex-col">
+            <main
+                className="relative z-10 container mx-auto px-3 md:px-4 flex flex-col"
+                style={{
+                    height: isMobile
+                        ? `calc(100vh - ${BOTTOM_NAV_PX}px - env(safe-area-inset-bottom, 0px))`
+                        : '100vh'
+                }}
+            >
                 {/* Header — Responsive */}
                 <header className={`flex justify-between items-center border-b border-system-border flex-shrink-0 ${isMobile ? 'py-2 mb-3' : 'py-4 mb-6'}`}>
                     <h1 className={`font-mono font-bold text-system-blue tracking-wider uppercase text-glow ${isMobile ? 'text-base' : 'text-2xl'}`}>
@@ -70,8 +80,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </div>
                 </header>
 
-                {/* Main Content Area — account for bottom nav on mobile */}
-                <div className={`flex-1 overflow-y-auto ${isMobile ? 'mobile-content-safe' : 'pb-6'}`}>
+                {/* Main Content Area — fills remaining space, scrolls internally */}
+                <div className="flex-1 overflow-y-auto pb-4">
                     {children}
                 </div>
             </main>
