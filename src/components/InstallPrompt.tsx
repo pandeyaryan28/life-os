@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Download, X } from 'lucide-react';
-import { useInstallPrompt } from '../context/MobileNavContext';
+import { useInstallPrompt, useMobileNav } from '../context/MobileNavContext';
 
 export const InstallPrompt: React.FC = () => {
-    const { isInstallable, promptInstall } = useInstallPrompt();
+    const { isInstallable, isInstalled, promptInstall } = useInstallPrompt();
+    const { isMobileDevice } = useMobileNav();
     const [dismissed, setDismissed] = useState(false);
 
-    if (!isInstallable || dismissed) return null;
+    // Only show on mobile devices, when installable, not already installed, and not dismissed
+    if (!isMobileDevice || !isInstallable || isInstalled || dismissed) return null;
 
     return (
         <div className="install-prompt">
@@ -22,7 +24,7 @@ export const InstallPrompt: React.FC = () => {
             <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                     onClick={() => setDismissed(true)}
-                    className="p-2 text-system-text/30 hover:text-white transition-colors tap-feedback"
+                    className="p-2 text-system-text/30 active:text-white transition-colors tap-feedback"
                     aria-label="Dismiss install prompt"
                 >
                     <X size={16} />

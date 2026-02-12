@@ -32,9 +32,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             <main className="relative z-10 container mx-auto px-3 md:px-4 h-screen flex flex-col">
                 {/* Header — Responsive */}
-                <header className={`flex justify-between items-center border-b border-system-border ${isMobile ? 'py-2 mb-3' : 'py-4 mb-6'}`}>
+                <header className={`flex justify-between items-center border-b border-system-border flex-shrink-0 ${isMobile ? 'py-2 mb-3' : 'py-4 mb-6'}`}>
                     <h1 className={`font-mono font-bold text-system-blue tracking-wider uppercase text-glow ${isMobile ? 'text-base' : 'text-2xl'}`}>
-                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.6.0</span>
+                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.6.1</span>
                     </h1>
                     <div className="flex gap-2 md:gap-4 items-center">
                         {/* Connection Status — Compact on mobile */}
@@ -71,7 +71,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </header>
 
                 {/* Main Content Area — account for bottom nav on mobile */}
-                <div className={`flex-1 overflow-y-auto ${isMobile ? 'pb-[calc(var(--bottom-nav-height)+var(--safe-area-bottom)+16px)]' : 'pb-20'}`}>
+                <div className={`flex-1 overflow-y-auto ${isMobile ? 'mobile-content-safe' : 'pb-6'}`}>
                     {children}
                 </div>
             </main>
@@ -79,7 +79,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Bottom Navigation — Mobile only */}
             <BottomNav />
 
-            {/* Install Prompt */}
+            {/* Install Prompt — Mobile only (gated inside component) */}
             <InstallPrompt />
         </div>
     );

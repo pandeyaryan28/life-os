@@ -92,10 +92,6 @@ body {
 
 /* === MODAL — MOBILE FULLSCREEN === */
 @media (max-width: 767px) {
-  :root {
-    --bottom-nav-height: 64px;
-  }
-
   .modal-overlay {
     border-radius: 0 !important;
   }
@@ -171,7 +167,45 @@ body {
 /* Hide bottom nav on desktop */
 @media (min-width: 768px) {
   .bottom-nav { display: none; }
-  :root { --bottom-nav-height: 0px; }
+}
+
+/* === MOBILE: set bottom-nav-height === */
+@media (max-width: 767px) {
+  :root {
+    --bottom-nav-height: 64px;
+  }
+
+  /* Hide scrollbar on mobile for cleaner look */
+  ::-webkit-scrollbar { width: 0; height: 0; }
+
+  /* Make body scrollable but app-like */
+  body {
+    overflow: hidden;
+  }
+
+  /* Quest cards - full width */
+  .quest-card {
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 4px;
+  }
+
+  /* Buttons - thumb friendly */
+  button {
+    min-height: 40px;
+  }
+
+  /* Filter buttons slightly larger */
+  .filter-btn {
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+}
+
+/* === CONTENT SAFE AREA PADDING (mobile bottom nav) === */
+/* Applied via .mobile-content-safe class in Layout */
+.mobile-content-safe {
+  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 16px);
 }
 
 /* === COMPACT PLAYER CARD (MOBILE) === */
@@ -255,35 +289,6 @@ body {
 }
 
 /* === RESPONSIVE BREAKPOINTS === */
-
-/* Mobile: ≤ 767px */
-@media (max-width: 767px) {
-  /* Hide scrollbar on mobile for cleaner look */
-  ::-webkit-scrollbar { width: 0; height: 0; }
-  
-  /* Make body scrollable but app-like */
-  body {
-    overflow: hidden;
-  }
-
-  /* Quest cards - full width */
-  .quest-card {
-    margin-left: 0;
-    margin-right: 0;
-    border-radius: 4px;
-  }
-
-  /* Buttons - thumb friendly */
-  button {
-    min-height: 40px;
-  }
-
-  /* Filter buttons slightly larger */
-  .filter-btn {
-    padding: 8px 14px;
-    font-size: 11px;
-  }
-}
 
 /* Tablet: 768px–1023px */
 @media (min-width: 768px) and (max-width: 1023px) {

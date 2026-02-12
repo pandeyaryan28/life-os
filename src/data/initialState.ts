@@ -68,7 +68,7 @@ export const INITIAL_STATE: GameState = {
         {
             id: 'log-init',
             timestamp: new Date().toISOString(),
-            message: 'System Initialized. Welcome to LIFE OS v1.6.0.',
+            message: 'System Initialized. Welcome to LIFE OS v1.6.1.',
             type: 'SYSTEM',
         },
     ],
