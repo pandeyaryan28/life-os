@@ -10,13 +10,14 @@ import {
     writeBatch,
     runTransaction
 } from "firebase/firestore";
-import { db } from "./config";
+import { getFirestoreService } from "./config";
 import type { PlayerProfile, GameState } from "../types";
 import type { SubscriptionStatus } from "../config/subscription";
 
 const USERS_COLLECTION = "users";
 
 export const initializeUserProfile = async (userId: string, profile: PlayerProfile) => {
+    const db = await getFirestoreService();
     const userRef = doc(db, USERS_COLLECTION, userId);
     const profileRef = doc(db, USERS_COLLECTION, userId, "profile", "data");
     const statsRef = doc(db, USERS_COLLECTION, userId, "stats", "current");
@@ -44,16 +45,23 @@ export const syncCollection = <T extends { id: string }>(
     collectionName: string,
     callback: (data: T[]) => void
 ) => {
-    const q = query(collection(db, USERS_COLLECTION, userId, collectionName));
-    return onSnapshot(q, (snapshot) => {
-        const data: T[] = [];
-        snapshot.forEach((doc) => {
-            data.push({ id: doc.id, ...doc.data() } as T);
+    if (!userId) return () => { };
+    let unsubscribe: () => void = () => { };
+
+    getFirestoreService().then(db => {
+        const q = query(collection(db, USERS_COLLECTION, userId, collectionName));
+        unsubscribe = onSnapshot(q, (snapshot) => {
+            const data: T[] = [];
+            snapshot.forEach((doc) => {
+                data.push({ id: doc.id, ...doc.data() } as T);
+            });
+            callback(data);
+        }, (error) => {
+            console.error(`Firestore Sync Error [${collectionName}]:`, error);
         });
-        callback(data);
-    }, (error) => {
-        console.error(`Firestore Sync Error [${collectionName}]:`, error);
     });
+
+    return () => unsubscribe();
 };
 
 export const syncDocument = <T>(
@@ -62,15 +70,22 @@ export const syncDocument = <T>(
     docId: string,
     callback: (data: T | null) => void
 ) => {
-    return onSnapshot(doc(db, USERS_COLLECTION, userId, collectionName, docId), (doc) => {
-        if (doc.exists()) {
-            callback(doc.data() as T);
-        } else {
-            callback(null);
-        }
-    }, (error) => {
-        console.error(`Firestore Doc Sync Error [${collectionName}/${docId}]:`, error);
+    if (!userId) return () => { };
+    let unsubscribe: () => void = () => { };
+
+    getFirestoreService().then(db => {
+        unsubscribe = onSnapshot(doc(db, USERS_COLLECTION, userId, collectionName, docId), (doc) => {
+            if (doc.exists()) {
+                callback(doc.data() as T);
+            } else {
+                callback(null);
+            }
+        }, (error) => {
+            console.error(`Firestore Doc Sync Error [${collectionName}/${docId}]:`, error);
+        });
     });
+
+    return () => unsubscribe();
 };
 
 const cleanData = (data: any) => {
@@ -95,6 +110,7 @@ export const upsertDocument = async (userId: string, collectionName: string, dat
         }
 
         const cleanedData = cleanData(data);
+        const db = await getFirestoreService();
         const docRef = doc(db, USERS_COLLECTION, userId, collectionName, docId);
         await setDoc(docRef, { ...cleanedData, updatedAt: serverTimestamp() }, { merge: true });
     } catch (error) {
@@ -104,6 +120,7 @@ export const upsertDocument = async (userId: string, collectionName: string, dat
 };
 
 export const deleteDocument = async (userId: string, collectionName: string, docId: string) => {
+    const db = await getFirestoreService();
     const docRef = doc(db, USERS_COLLECTION, userId, collectionName, docId);
     await deleteDoc(docRef);
 };
@@ -120,10 +137,6 @@ export interface CreditTransaction {
     balanceAfter: number;
 }
 
-/**
- * ATOMIC CREDIT TRANSACTION
- * This is the ONLY way to modify credits. All credit changes must go through this.
- */
 export const executeCreditsTransaction = async (
     userId: string,
     amount: number,
@@ -132,9 +145,9 @@ export const executeCreditsTransaction = async (
     relatedId?: string
 ): Promise<number> => {
     try {
+        const db = await getFirestoreService();
         const walletRef = doc(db, USERS_COLLECTION, userId, "economy", "wallet");
 
-        // Use Firestore transaction for atomic read-modify-write
         const newBalance = await runTransaction(db, async (transaction) => {
             const walletDoc = await transaction.get(walletRef);
 
@@ -145,13 +158,11 @@ export const executeCreditsTransaction = async (
 
             const newCredits = Math.max(0, currentCredits + amount);
 
-            // Update wallet
             transaction.set(walletRef, {
                 credits: newCredits,
                 updatedAt: serverTimestamp()
             }, { merge: true });
 
-            // Log transaction
             const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             const transactionRef = doc(db, USERS_COLLECTION, userId, "transactions", transactionId);
 
@@ -166,13 +177,6 @@ export const executeCreditsTransaction = async (
 
             transaction.set(transactionRef, transactionData);
 
-            console.log(`💰 Credit Transaction [${type}]:`, {
-                amount,
-                description,
-                oldBalance: currentCredits,
-                newBalance: newCredits
-            });
-
             return newCredits;
         });
 
@@ -183,10 +187,8 @@ export const executeCreditsTransaction = async (
     }
 };
 
-/**
- * Get current credit balance (for initial load)
- */
 export const getCredits = async (userId: string): Promise<number> => {
+    const db = await getFirestoreService();
     const walletRef = doc(db, USERS_COLLECTION, userId, "economy", "wallet");
     const walletDoc = await getDoc(walletRef);
     return walletDoc.exists() ? (walletDoc.data().credits || 0) : 0;
@@ -195,52 +197,44 @@ export const getCredits = async (userId: string): Promise<number> => {
 // ==================== END NEW CREDITS SYSTEM ====================
 
 export const migrateLocalStorageToFirestore = async (userId: string, gameState: GameState) => {
+    const db = await getFirestoreService();
     const batch = writeBatch(db);
 
-    // Profile (WITHOUT credits)
     const profileRef = doc(db, USERS_COLLECTION, userId, "profile", "data");
     const { stats, credits, ...profileData } = gameState.player;
     batch.set(profileRef, cleanData({ ...profileData, lastLogin: serverTimestamp() }));
 
-    // Stats
     const statsRef = doc(db, USERS_COLLECTION, userId, "stats", "current");
     batch.set(statsRef, cleanData({ ...stats, updatedAt: serverTimestamp() }));
 
-    // Wallet (credits only)
     const walletRef = doc(db, USERS_COLLECTION, userId, "economy", "wallet");
     batch.set(walletRef, { credits: credits || 0, updatedAt: serverTimestamp() });
 
-    // Settings
     const settingsRef = doc(db, USERS_COLLECTION, userId, "system", "settings");
     batch.set(settingsRef, cleanData({ ...gameState.settings, updatedAt: serverTimestamp() }));
 
-    // Quests
     gameState.quests.forEach(quest => {
         const questRef = doc(db, USERS_COLLECTION, userId, "quests", quest.id);
         batch.set(questRef, cleanData({ ...quest, updatedAt: serverTimestamp() }));
     });
 
-    // Goals
     gameState.goals.forEach(goal => {
         const goalRef = doc(db, USERS_COLLECTION, userId, "goals", goal.id);
         batch.set(goalRef, cleanData({ ...goal, updatedAt: serverTimestamp() }));
     });
 
-    // Economy/Expenses
     gameState.expenses.forEach(expense => {
         const expRef = doc(db, USERS_COLLECTION, userId, "economy", expense.id);
         batch.set(expRef, cleanData({ ...expense, updatedAt: serverTimestamp() }));
     });
 
-    // Ledger (Expense History) - but exclude automatic logs type entries
     gameState.expenseHistory
-        .filter(h => h.type === 'ONE_TIME' || h.type === 'RECURRING') // Only real expenses
+        .filter(h => h.type === 'ONE_TIME' || h.type === 'RECURRING')
         .forEach(history => {
             const historyRef = doc(db, USERS_COLLECTION, userId, "ledger", history.id);
             batch.set(historyRef, cleanData({ ...history, createdAt: serverTimestamp() }));
         });
 
-    // Manual Adjustments
     gameState.manualAdjustments.forEach(adj => {
         const adjRef = doc(db, USERS_COLLECTION, userId, "adjustments", adj.id);
         batch.set(adjRef, cleanData({ ...adj, createdAt: serverTimestamp() }));
@@ -249,50 +243,53 @@ export const migrateLocalStorageToFirestore = async (userId: string, gameState: 
     await batch.commit();
 };
 
-// ==================== SUBSCRIPTION SYSTEM ====================
-
 export const syncSubscription = (
     userId: string,
     callback: (subscription: SubscriptionStatus | null) => void
 ) => {
-    const subscriptionRef = doc(db, USERS_COLLECTION, userId, "subscription", "status");
+    if (!userId) return () => { };
+    let unsubscribe: () => void = () => { };
 
-    return onSnapshot(subscriptionRef, (docSnapshot) => {
-        if (docSnapshot.exists()) {
-            const data = docSnapshot.data();
-            callback({
-                planId: data.planId || '',
-                planType: data.planType || 'monthly',
-                status: data.status || 'expired',
-                startDate: data.startDate || '',
-                endDate: data.endDate || '',
-                razorpayPaymentId: data.razorpayPaymentId,
-                razorpayOrderId: data.razorpayOrderId,
-                razorpaySubscriptionId: data.razorpaySubscriptionId,
-                amount: data.amount,
-                currency: data.currency,
-                email: data.email
-            } as SubscriptionStatus);
-        } else {
+    getFirestoreService().then(db => {
+        const subscriptionRef = doc(db, USERS_COLLECTION, userId, "subscription", "status");
+
+        unsubscribe = onSnapshot(subscriptionRef, (docSnapshot) => {
+            if (docSnapshot.exists()) {
+                const data = docSnapshot.data();
+                callback({
+                    planId: data.planId || '',
+                    planType: data.planType || 'monthly',
+                    status: data.status || 'expired',
+                    startDate: data.startDate || '',
+                    endDate: data.endDate || '',
+                    razorpayPaymentId: data.razorpayPaymentId,
+                    razorpayOrderId: data.razorpayOrderId,
+                    razorpaySubscriptionId: data.razorpaySubscriptionId,
+                    amount: data.amount,
+                    currency: data.currency,
+                    email: data.email
+                } as SubscriptionStatus);
+            } else {
+                callback(null);
+            }
+        }, (error) => {
+            console.error('Subscription sync error:', error);
             callback(null);
-        }
-    }, (error) => {
-        console.error('Subscription sync error:', error);
-        callback(null);
+        });
     });
+
+    return () => unsubscribe();
 };
 
 export const saveSubscription = async (
     userId: string,
     subscriptionData: SubscriptionStatus
 ): Promise<void> => {
+    const db = await getFirestoreService();
     const subscriptionRef = doc(db, USERS_COLLECTION, userId, "subscription", "status");
 
     await setDoc(subscriptionRef, {
         ...subscriptionData,
         updatedAt: serverTimestamp()
     });
-
-    console.log('💳 Subscription saved for user:', userId);
 };
-

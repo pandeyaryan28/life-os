@@ -19,29 +19,34 @@ createRoot(document.getElementById('root')!).render(
 )
 
 /**
- * PERF v1.8: Defer service worker registration until after window.onload.
- * This ensures the SW never blocks LCP or initial rendering.
+ * PERF v1.8.2: Defer service worker registration using requestIdleCallback.
+ * This ensures the SW never blocks LCP, TTI, or initial rendering.
+ * Loaded only after the main thread is completely free.
  */
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
+  const registerSWDeferred = async () => {
     try {
       const { registerSW } = await import('virtual:pwa-register')
       registerSW({
         immediate: false,
         onRegistered(registration) {
           if (registration) {
-            // Check for updates every hour
             setInterval(() => {
               registration.update()
             }, 60 * 60 * 1000)
           }
-        },
-        onRegisterError(error) {
-          console.error('SW registration error:', error)
         }
       })
     } catch {
-      // PWA plugin not available in dev mode, silently ignore
+      // PWA plugin not available in dev mode
     }
-  })
+  };
+
+  window.addEventListener('load', () => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(() => void registerSWDeferred(), { timeout: 10000 });
+    } else {
+      setTimeout(() => void registerSWDeferred(), 5000);
+    }
+  });
 }

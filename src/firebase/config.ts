@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, type FirebaseApp } from "firebase/app";
+import type { Auth } from "firebase/auth";
+import type { Firestore } from "firebase/firestore";
 import type { Analytics } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -13,54 +13,80 @@ const firebaseConfig = {
     measurementId: "G-QG09YN7SDV"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-/**
- * PERF v1.8: Analytics is deferred — loaded only after user interaction or idle.
- * This removes firebase/analytics from the critical path and initial bundle.
- */
+// Singleton instances
+let appInstance: FirebaseApp | null = null;
+let authInstance: Auth | null = null;
+let dbInstance: Firestore | null = null;
 let analyticsInstance: Analytics | null = null;
 let analyticsInitPromise: Promise<Analytics | null> | null = null;
 
-export const initAnalytics = (): Promise<Analytics | null> => {
-    if (analyticsInstance) return Promise.resolve(analyticsInstance);
+/**
+ * CORE INITIALIZER (LAZY)
+ * Avoids any Firebase initialization until a service is actually requested.
+ * This ensures the initial paint never blocks on Firebase overhead.
+ */
+export const getApp = (): FirebaseApp => {
+    if (!appInstance) {
+        appInstance = initializeApp(firebaseConfig);
+    }
+    return appInstance;
+};
+
+export const getAuthService = async (): Promise<Auth> => {
+    if (!authInstance) {
+        const { getAuth } = await import("firebase/auth");
+        authInstance = getAuth(getApp());
+    }
+    return authInstance;
+};
+
+export const getFirestoreService = async (): Promise<Firestore> => {
+    if (!dbInstance) {
+        const { getFirestore } = await import("firebase/firestore");
+        dbInstance = getFirestore(getApp());
+    }
+    return dbInstance;
+};
+
+/**
+ * Analytics is high-latency and non-critical.
+ * Only loads after the app is stable via IdleCallback.
+ */
+export const initAnalytics = async (): Promise<Analytics | null> => {
+    if (analyticsInstance) return analyticsInstance;
     if (analyticsInitPromise) return analyticsInitPromise;
 
-    analyticsInitPromise = import('firebase/analytics').then(({ getAnalytics }) => {
-        analyticsInstance = getAnalytics(app);
-        return analyticsInstance;
-    }).catch((err) => {
-        console.error("Analytics failed to load:", err);
-        analyticsInitPromise = null;
-        return null;
-    });
+    analyticsInitPromise = (async () => {
+        try {
+            const { getAnalytics } = await import('firebase/analytics');
+            analyticsInstance = getAnalytics(getApp());
+            return analyticsInstance;
+        } catch (err) {
+            console.error("Analytics load failed:", err);
+            return null;
+        }
+    })();
 
     return analyticsInitPromise;
 };
 
-// PERF v1.8: Initialize analytics after idle or user interaction
+// Start Analytics only during idle time to maximize TTI
 if (typeof window !== 'undefined') {
-    // Cast window to any to avoid strict type issues with event listeners in some envs
     const w = window as any;
-
     const startAnalytics = () => {
         void initAnalytics();
-        // Clean up listeners after first trigger
-        w.removeEventListener('click', startAnalytics);
-        w.removeEventListener('scroll', startAnalytics);
-        w.removeEventListener('keydown', startAnalytics);
     };
 
     if ('requestIdleCallback' in w) {
-        w.requestIdleCallback(() => void initAnalytics(), { timeout: 5000 });
+        w.requestIdleCallback(() => void initAnalytics(), { timeout: 10000 });
     } else {
-        // Fallback: load on first user interaction
-        w.addEventListener('click', startAnalytics, { once: true, passive: true });
-        w.addEventListener('scroll', startAnalytics, { once: true, passive: true });
-        w.addEventListener('keydown', startAnalytics, { once: true, passive: true });
+        w.addEventListener('load', startAnalytics, { once: true });
     }
 }
 
-export { app, auth, db };
+// Export legacy-compatible getters to avoid breaking imports immediately
+// but update them to use the lazy system. Note: these will be used by 
+// top-level imports and might still trigger some bundling, but helps migration.
+export const app = getApp();
+// auth and db cannot be exported as constants now if we want true lazy route-level splitting
+// we will update db.ts and AuthContext.tsx to use the new getters.

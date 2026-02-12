@@ -13,7 +13,7 @@
             ]
         },
         {
-            "source": "/icon-(.*).png",
+            "source": "/(.*).(woff2|woff|ttf|eot|png|jpg|jpeg|svg|gif|webp|ico|json)",
             "headers": [
                 {
                     "key": "Cache-Control",
@@ -22,11 +22,11 @@
             ]
         },
         {
-            "source": "/manifest.webmanifest",
+            "source": "/manifest.json",
             "headers": [
                 {
                     "key": "Cache-Control",
-                    "value": "public, max-age=86400"
+                    "value": "public, max-age=86400, stale-while-revalidate=43200"
                 }
             ]
         },

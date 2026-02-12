@@ -5,10 +5,10 @@ import { PublicRoute } from './routes/PublicRoute';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { AuthenticatedLayout } from './AuthenticatedLayout';
 import { OnboardingGate } from './OnboardingGate';
-import { Login } from './Login';
+const Login = lazy(() => import('./Login').then(m => ({ default: m.Login })));
 
 /**
- * PERF v1.8: Route-based code splitting.
+ * PERF v1.8.2: Route-based code splitting.
  * Each page is lazy-loaded as its own chunk, reducing initial JS payload.
  * Only the minimal code for the current route is loaded on navigation.
  */

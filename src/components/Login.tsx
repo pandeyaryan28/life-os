@@ -271,7 +271,7 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
                             <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
                             <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Master Node: Active</span>
                         </div>
-                        <span className="text-[10px] font-mono text-gray-400 uppercase">v1.8.1</span>
+                        <span className="text-[10px] font-mono text-gray-400 uppercase">v1.8.2</span>
                     </div>
                     <div className="flex justify-center items-center gap-4 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
                         <a href="/support" className="hover:text-cyan-400 transition-colors">Support</a>

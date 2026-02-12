@@ -1,7 +1,7 @@
 import type { GameState } from '../types';
 
 export const INITIAL_STATE: GameState = {
-    version: '1.8.1',
+    version: '1.8.2',
     player: {
         firstName: 'Player',
         level: 1,
@@ -68,7 +68,7 @@ export const INITIAL_STATE: GameState = {
         {
             id: 'log-init',
             timestamp: new Date().toISOString(),
-            message: 'System Initialized. Welcome to LIFE OS v1.8.1.',
+            message: 'System Initialized. Welcome to LIFE OS v1.8.2.',
             type: 'SYSTEM',
         },
     ],

@@ -22,21 +22,81 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
 
-  <!-- Preconnect — Firebase only (max 4, no Razorpay here) -->
-  <link rel="preconnect" href="https://life-os-1e607.firebaseapp.com" />
-  <link rel="preconnect" href="https://firestore.googleapis.com" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <!-- PRECONNECT OPTIMIZATION (v1.8.2) -->
+  <link rel="preconnect" href="https://life-os-1e607.firebaseapp.com" crossorigin />
+  <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <!-- Optimized: max 3 origins used -->
 
   <title>LIFE OS — Gamified Life Management</title>
 
-  <!-- 
-      PERF v1.8: Razorpay script REMOVED from global HTML.
-      It is now dynamically loaded only when payment flow is triggered.
-      Google Fonts REMOVED from critical path — fonts are now self-hosted. 
-    -->
+  <!-- CRITICAL CSS (Inline) -->
+  <style id="critical-css">
+    :root {
+      --system-dark: #0a0a0b;
+      --system-blue: #00aaff;
+      --system-panel: #111111;
+      --system-text: #e0e0e0;
+    }
+
+    html,
+    body {
+      background-color: var(--system-dark);
+      color: var(--system-text);
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+    }
+
+    #root {
+      height: 100%;
+      width: 100%;
+    }
+
+    .initial-load {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: var(--system-dark);
+    }
+
+    .load-spinner {
+      width: 40px;
+      height: 40px;
+      border: 2px solid rgba(0, 170, 255, 0.2);
+      border-top-color: var(--system-blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+
+  <!-- ASYNC CSS LOADING (v1.8.2) -->
+  <script>
+    // Prevent FOUC by making sure the body is visible immediately with critical styles
+    document.documentElement.className = 'js-loading';
+  </script>
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <div class="initial-load" id="system-init-loader">
+      <div class="load-spinner"></div>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

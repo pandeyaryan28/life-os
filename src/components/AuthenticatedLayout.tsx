@@ -118,7 +118,7 @@ export const AuthenticatedLayout: React.FC = () => {
                         <span className="text-system-border/30">|</span>
                         <Link to="/privacy" className="hover:text-system-blue transition-colors">Privacy</Link>
                     </div>
-                    <span>v1.8.1</span>
+                    <span>v1.8.2</span>
                 </footer>
             </div>
 

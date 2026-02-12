@@ -35,7 +35,7 @@ export const SystemGuide: React.FC<SystemGuideProps> = ({ isOpen, onClose }) => 
                             <BookOpen className="text-system-blue flex-shrink-0" size={20} />
                             <div className="min-w-0">
                                 <h2 className="text-base md:text-xl font-black text-white tracking-widest uppercase italic truncate">System Guide</h2>
-                                <p className="text-[11px] font-mono text-system-text/60 uppercase tracking-widest mt-1">LIFE OS v{STAGES[0] ? '1.8.1' : '1.8.1'} // Documentation Layer</p>
+                                <p className="text-[11px] font-mono text-system-text/60 uppercase tracking-widest mt-1">LIFE OS v{STAGES[0] ? '1.8.2' : '1.8.2'} // Documentation Layer</p>
                             </div>
                         </div>
                         <button

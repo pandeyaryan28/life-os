@@ -264,7 +264,7 @@ export const PrivacyPage: React.FC = () => {
                         <span className="text-white/10">|</span>
                         <Link to="/privacy" className="hover:text-cyan-400 transition-colors">Privacy Policy</Link>
                     </div>
-                    <span>LIFE OS v1.8.1</span>
+                    <span>LIFE OS v1.8.2</span>
                 </footer>
             </div>
         </div>
