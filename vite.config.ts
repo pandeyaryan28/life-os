@@ -13,7 +13,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // Do not cache Firebase/Firestore API calls, auth tokens, or dynamic data
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/__(\/|$)/],
+        navigateFallbackDenylist: [/^\/api/, /^\/__(\/|$)/, /\/sitemap\.xml$/, /\/robots\.txt$/],
         runtimeCaching: [
           {
             // Google Fonts stylesheets

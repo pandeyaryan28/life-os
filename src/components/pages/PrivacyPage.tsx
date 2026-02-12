@@ -5,6 +5,9 @@ import { Shield, ArrowLeft, Database, Lock, Eye, UserCheck, Cookie, FileText } f
 export const PrivacyPage: React.FC = () => {
     useEffect(() => {
         document.title = 'Privacy Policy — LIFE OS';
+        // Allow scrolling on this standalone page (body has overflow:hidden globally)
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
         let meta = document.querySelector('meta[name="description"]');
         if (meta) {
             meta.setAttribute('content', 'LIFE OS Privacy Policy. Learn how we collect, use, and protect your data.');
@@ -18,6 +21,8 @@ export const PrivacyPage: React.FC = () => {
         canonical.href = window.location.origin + '/privacy';
         return () => {
             document.title = 'LIFE OS — Gamified Life Management';
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
         };
     }, []);
 
@@ -189,7 +194,7 @@ export const PrivacyPage: React.FC = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white selection:bg-cyan-500/30">
+        <div className="fixed inset-0 overflow-y-auto bg-[#050505] text-white selection:bg-cyan-500/30 z-50">
             {/* Background Effects */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/5 rounded-full blur-[120px]" />

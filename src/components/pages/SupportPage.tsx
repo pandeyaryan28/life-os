@@ -5,6 +5,9 @@ import { Mail, Bug, AlertTriangle, HelpCircle, ArrowLeft, Shield } from 'lucide-
 export const SupportPage: React.FC = () => {
     useEffect(() => {
         document.title = 'Support — LIFE OS';
+        // Allow scrolling on this standalone page (body has overflow:hidden globally)
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
         // Set meta description
         let meta = document.querySelector('meta[name="description"]');
         if (meta) {
@@ -20,11 +23,13 @@ export const SupportPage: React.FC = () => {
         canonical.href = window.location.origin + '/support';
         return () => {
             document.title = 'LIFE OS — Gamified Life Management';
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
         };
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white selection:bg-cyan-500/30">
+        <div className="fixed inset-0 overflow-y-auto bg-[#050505] text-white selection:bg-cyan-500/30 z-50">
             {/* Background Effects */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/5 rounded-full blur-[120px]" />
