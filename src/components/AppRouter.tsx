@@ -13,6 +13,8 @@ import { EconomyPage } from './pages/EconomyPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SystemPage } from './pages/SystemPage';
 import { GuidePage } from './pages/GuidePage';
+import { SupportPage } from './pages/SupportPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 
 export const AppRouter: React.FC = () => {
     return (
@@ -38,6 +40,10 @@ export const AppRouter: React.FC = () => {
                         </PublicRoute>
                     }
                 />
+
+                {/* Public info pages — no auth required */}
+                <Route path="/support" element={<SupportPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
 
                 {/* Protected routes — wrapped in Layout */}
                 <Route

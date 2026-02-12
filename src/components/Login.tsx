@@ -261,12 +261,19 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
                     </AnimatePresence>
                 </div>
 
-                <div className="mt-8 flex justify-between items-center px-4">
-                    <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
-                        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Master Node: Active</span>
+                <div className="mt-8 flex flex-col gap-4 px-4">
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Master Node: Active</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-gray-600 uppercase">v1.7.5</span>
                     </div>
-                    <span className="text-[10px] font-mono text-gray-600 uppercase">Version 1.5.0_Stable</span>
+                    <div className="flex justify-center items-center gap-4 text-[10px] font-mono text-gray-600 uppercase tracking-widest">
+                        <a href="/support" className="hover:text-cyan-400 transition-colors">Support</a>
+                        <span className="text-white/10">|</span>
+                        <a href="/privacy" className="hover:text-cyan-400 transition-colors">Privacy</a>
+                    </div>
                 </div>
             </motion.div>
         </div>

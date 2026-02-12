@@ -89,6 +89,11 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
                         <div className="text-[9px] text-system-text/40 font-mono uppercase">Streak</div>
                         <div className="text-sm font-bold text-system-gold">{gameState.player.streak}D 🔥</div>
                     </div>
+
+                    <div className="bg-system-dark/30 border border-system-border/30 p-3 rounded-sm flex justify-between items-center">
+                        <div className="text-[9px] text-system-text/40 font-mono uppercase">System Version</div>
+                        <div className="text-[10px] font-mono text-system-blue font-bold">LIFE OS v1.7.5</div>
+                    </div>
                 </div>
             )}
         </div>

@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 /**
- * 404 page for unknown routes under /lifeosplus/*.
+ * 404 page for unknown routes.
  * Does not load any app state. Provides navigation back to dashboard.
  */
 export const NotFoundPage: React.FC = () => {

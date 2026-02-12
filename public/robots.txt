@@ -1,0 +1,21 @@
+# LIFE OS — robots.txt
+# v1.7.5
+
+User-agent: *
+
+# Public routes — allowed
+Allow: /login
+Allow: /register
+Allow: /support
+Allow: /privacy
+
+# Authenticated routes — disallowed
+Disallow: /dashboard
+Disallow: /goals
+Disallow: /quests
+Disallow: /economy
+Disallow: /profile
+Disallow: /system
+Disallow: /guide
+
+Sitemap: https://lifeosplus.com/sitemap.xml

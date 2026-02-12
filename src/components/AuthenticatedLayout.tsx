@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useMobileNav, useOnlineStatus } from '../context/MobileNavContext';
 import { LogOut, WifiOff } from 'lucide-react';
@@ -23,6 +23,22 @@ export const AuthenticatedLayout: React.FC = () => {
         window.scrollTo(0, 0);
     }, [location.pathname]);
 
+    // Add noindex meta tag for authenticated routes
+    useEffect(() => {
+        let meta = document.querySelector('meta[name="robots"]') as HTMLMetaElement;
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'robots';
+            document.head.appendChild(meta);
+        }
+        meta.content = 'noindex, nofollow';
+        return () => {
+            if (meta && meta.parentNode) {
+                meta.parentNode.removeChild(meta);
+            }
+        };
+    }, []);
+
     return (
         <div className="min-h-screen bg-system-dark text-system-text font-sans selection:bg-system-blue selection:text-white overflow-hidden relative">
             {/* Offline Indicator */}
@@ -42,7 +58,7 @@ export const AuthenticatedLayout: React.FC = () => {
                 {/* Header — Responsive */}
                 <header className={`flex justify-between items-center border-b border-system-border flex-shrink-0 ${isMobile ? 'py-2 mb-3' : 'py-4 mb-6'}`}>
                     <h1 className={`font-mono font-bold text-system-blue tracking-wider uppercase text-glow ${isMobile ? 'text-base' : 'text-2xl'}`}>
-                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.7.1</span>
+                        Life OS <span className="text-xs text-system-blue opacity-50 font-bold bg-system-blue/10 px-1 rounded-sm ml-1">v1.7.5</span>
                     </h1>
                     <div className="flex gap-2 md:gap-4 items-center">
                         {/* Connection Status — Compact on mobile */}
@@ -90,6 +106,16 @@ export const AuthenticatedLayout: React.FC = () => {
                 >
                     <Outlet />
                 </div>
+
+                {/* Global Footer */}
+                <footer className="flex-shrink-0 py-3 border-t border-system-border/30 flex justify-between items-center text-[9px] font-mono text-system-text/30 uppercase tracking-widest">
+                    <div className="flex items-center gap-3">
+                        <Link to="/support" className="hover:text-system-blue transition-colors">Support</Link>
+                        <span className="text-system-border/30">|</span>
+                        <Link to="/privacy" className="hover:text-system-blue transition-colors">Privacy</Link>
+                    </div>
+                    <span>v1.7.5</span>
+                </footer>
             </main>
 
             {/* Bottom Navigation — Mobile only */}
