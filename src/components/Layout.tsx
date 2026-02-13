@@ -17,7 +17,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const isOnline = useOnlineStatus();
 
     return (
-        <div className="min-h-screen bg-system-dark text-system-text font-sans selection:bg-system-blue selection:text-white overflow-hidden relative">
+        <div className="min-h-screen bg-system-dark text-system-text font-sans selection:bg-system-blue selection:text-white relative">
             {/* Offline Indicator */}
             <OfflineIndicator />
 
@@ -31,7 +31,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-50 bg-[length:100%_2px,3px_100%] pointer-events-none opacity-20"></div>
             )}
 
-            <main className="relative z-10 container mx-auto px-3 md:px-4 h-screen flex flex-col">
+            <main className="relative z-10 container mx-auto px-3 md:px-4 min-h-screen flex flex-col">
                 {/* Header — Responsive */}
                 <header className={`flex justify-between items-center border-b border-system-border flex-shrink-0 ${isMobile ? 'py-2 mb-3' : 'py-4 mb-6'}`}>
                     <h1 className={`font-mono font-bold text-system-blue tracking-wider uppercase text-glow ${isMobile ? 'text-base' : 'text-2xl'}`}>

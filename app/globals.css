@@ -12,13 +12,37 @@
   --system-danger: #ff4444;
 }
 
+
 body {
   background-color: var(--system-dark);
   color: var(--system-text);
   font-family: 'Inter', sans-serif;
-  overflow: hidden;
-  /* Prevent scrolling, app-like feel */
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
 }
+
+/* Desktop: prevent body scroll, app-like feel */
+@media (min-width: 768px) {
+  body {
+    overflow: hidden;
+  }
+}
+
+/* Mobile: allow scrolling */
+@media (max-width: 767px) {
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html {
+    height: -webkit-fill-available;
+  }
+}
+
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
