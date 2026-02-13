@@ -1,7 +1,7 @@
-import { initializeApp, type FirebaseApp } from "firebase/app";
-import type { Auth } from "firebase/auth";
-import type { Firestore } from "firebase/firestore";
-import type { Analytics } from "firebase/analytics";
+import { type FirebaseApp } from "firebase/app";
+import { type Auth } from "firebase/auth";
+import { type Firestore } from "firebase/firestore";
+import { type Analytics } from "firebase/analytics";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA7TsPpHECarAKheUtepciuaP5TtLfhUxo",
@@ -14,95 +14,44 @@ const firebaseConfig = {
 };
 
 // Singleton instances
-let appInstance: FirebaseApp | null = null;
-let authInstance: Auth | null = null;
-let dbInstance: Firestore | null = null;
-let analyticsInstance: Analytics | null = null;
-let analyticsInitPromise: Promise<Analytics | null> | null = null;
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
+let analytics: Analytics | null | undefined;
 
 /**
- * CORE INITIALIZER (LAZY)
- * Avoids any Firebase initialization until a service is actually requested.
- * This ensures the initial paint never blocks on Firebase overhead.
+ * Initializes Firebase and its services.
+ * This function should be called only when needed to avoid blocking critical rendering.
  */
-export const getApp = (): FirebaseApp => {
-    if (!appInstance) {
-        appInstance = initializeApp(firebaseConfig);
+export const initFirebase = async () => {
+    if (app && auth && db) {
+        return { app, auth, db, analytics };
     }
-    return appInstance;
+
+    const { initializeApp } = await import("firebase/app");
+    const { getAuth } = await import("firebase/auth");
+    const { getFirestore } = await import("firebase/firestore");
+    const { getAnalytics } = await import("firebase/analytics");
+
+    if (!app) {
+        app = initializeApp(firebaseConfig);
+    }
+    
+    if (!auth) {
+        auth = getAuth(app);
+    }
+    
+    if (!db) {
+        db = getFirestore(app);
+    }
+    
+    if (typeof window !== 'undefined' && !analytics) {
+        analytics = getAnalytics(app);
+    }
+
+    return { app, auth, db, analytics };
 };
 
-export const getAuthService = async (): Promise<Auth> => {
-    if (!authInstance) {
-        // High-priority for user session
-        const { getAuth, setPersistence, browserLocalPersistence } = await import("firebase/auth");
-        const instance = getAuth(getApp());
-        await setPersistence(instance, browserLocalPersistence);
-        authInstance = instance;
-    }
-    return authInstance;
-};
-
-export const getFirestoreService = async (): Promise<Firestore> => {
-    if (!dbInstance) {
-        // Firestore is heavy, load only when needed
-        const { getFirestore, enableIndexedDbPersistence } = await import("firebase/firestore");
-        const instance = getFirestore(getApp());
-
-        // Optional: Enable offline persistence for better mobile UX
-        try {
-            await enableIndexedDbPersistence(instance);
-        } catch (err) {
-            console.warn("Firestore persistence failed:", err);
-        }
-
-        dbInstance = instance;
-    }
-    return dbInstance;
-};
-
-/**
- * Analytics is high-latency and non-critical.
- * Only loads after the app is stable via IdleCallback.
- */
-export const initAnalytics = async (): Promise<Analytics | null> => {
-    if (analyticsInstance) return analyticsInstance;
-    if (analyticsInitPromise) return analyticsInitPromise;
-
-    analyticsInitPromise = (async () => {
-        try {
-            const { getAnalytics } = await import('firebase/analytics');
-            analyticsInstance = getAnalytics(getApp());
-            return analyticsInstance;
-        } catch (err) {
-            console.error("Analytics load failed:", err);
-            return null;
-        }
-    })();
-
-    return analyticsInitPromise;
-};
-
-// Start Analytics only during idle time to maximize TTI
-if (typeof window !== 'undefined') {
-    const w = window as any;
-
-    const delayedInit = () => {
-        // Only trigger initialization after the main thread is free
-        if ('requestIdleCallback' in w) {
-            // Aggressive delay for Analytics to ensure zero LCP interference
-            w.requestIdleCallback(() => void initAnalytics(), { timeout: 20000 });
-        } else {
-            setTimeout(() => void initAnalytics(), 15000);
-        }
-    };
-
-    if (document.readyState === 'complete') {
-        delayedInit();
-    } else {
-        window.addEventListener('load', delayedInit, { once: true });
-    }
-}
-
-// Removed legacy exports that trigger early bundling
-// Use getApp(), getAuthService(), getFirestoreService() instead.
+// Export typed getters for usage after initialization
+export const getFirebaseAuth = () => auth;
+export const getFirebaseDb = () => db;

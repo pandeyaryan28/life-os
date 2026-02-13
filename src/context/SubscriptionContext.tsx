@@ -82,6 +82,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [currency] = useState<Currency>(detectCurrency);
 
     // Sync subscription status from Firestore
+    // Sync subscription status from Firestore
     useEffect(() => {
         if (!user) {
             setSubscription(null);
@@ -89,12 +90,35 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
             return;
         }
 
-        const unsubscribe = syncSubscription(user.uid, (sub) => {
-            setSubscription(sub);
-            setIsLoading(false);
-        });
+        let unsubscribe: (() => void) | undefined;
+        let mounted = true;
 
-        return unsubscribe;
+        const setup = async () => {
+            try {
+                const u = await syncSubscription(user.uid, (sub) => {
+                    if (mounted) {
+                        setSubscription(sub);
+                        setIsLoading(false);
+                    }
+                });
+
+                if (mounted) {
+                    unsubscribe = u;
+                } else {
+                    u(); // Clean up if unmounted during setup
+                }
+            } catch (error) {
+                console.error("Failed to sync subscription:", error);
+                if (mounted) setIsLoading(false);
+            }
+        };
+
+        setup();
+
+        return () => {
+            mounted = false;
+            if (unsubscribe) unsubscribe();
+        };
     }, [user]);
 
     const initiatePayment = useCallback(async (planId: string) => {
