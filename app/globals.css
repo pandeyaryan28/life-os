@@ -16,21 +16,25 @@ body {
   background-color: var(--system-dark);
   color: var(--system-text);
   font-family: 'Inter', sans-serif;
-  overflow: hidden; /* Prevent scrolling, app-like feel */
+  overflow: hidden;
+  /* Prevent scrolling, app-like feel */
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: var(--system-dark); 
+  background: var(--system-dark);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: var(--system-border); 
+  background: var(--system-border);
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--system-blue); 
+  background: var(--system-blue);
 }
 
 /* System Utilities */
@@ -54,12 +58,115 @@ body {
 /* Optimized Skeleton Loading Animation */
 .skeleton {
   animation: shimmer 2s infinite;
-  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%); /* Dark mode adapted colors */
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  /* Dark mode adapted colors */
   background-size: 200% 100%;
   will-change: background-position;
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Mobile Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: linear-gradient(180deg, rgba(10, 10, 10, 0.95) 0%, rgba(10, 10, 10, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--system-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 8px;
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(224, 224, 224, 0.4);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  min-width: 60px;
+  position: relative;
+}
+
+.bottom-nav-item svg {
+  width: 20px;
+  height: 20px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bottom-nav-item span {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Inter', sans-serif;
+}
+
+.bottom-nav-item.active {
+  color: var(--system-blue);
+  background: rgba(0, 170, 255, 0.1);
+}
+
+.bottom-nav-item.active svg {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 0 8px rgba(0, 170, 255, 0.6));
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.95);
+}
+
+/* Tap Feedback Animation */
+.tap-feedback {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.tap-feedback:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+/* Safe Area for iOS devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(64px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Mobile Scroll Optimization */
+@media (max-width: 767px) {
+  body {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Prevent pull-to-refresh on mobile */
+  html {
+    overscroll-behavior-y: contain;
+  }
 }
