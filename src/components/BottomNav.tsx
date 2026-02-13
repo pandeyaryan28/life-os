@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMobileNav, type MobileTab } from '../context/MobileNavContext';
 import { LayoutDashboard, Target, Sword, DollarSign, User } from 'lucide-react';
 
@@ -19,11 +19,31 @@ const NAV_ITEMS: NavItem[] = [
 
 export const BottomNav: React.FC = () => {
     const { isMobile, activeTab, setActiveTab } = useMobileNav();
+    const [mounted, setMounted] = useState(false);
 
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Don't render on server, wait for client mount
+    if (!mounted) return null;
+
+    // Always show on mobile screens (width <= 767px)
     if (!isMobile) return null;
 
     return (
-        <nav className="bottom-nav" role="navigation" aria-label="Mobile Navigation">
+        <nav
+            className="bottom-nav"
+            role="navigation"
+            aria-label="Mobile Navigation"
+            style={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 1000,
+            }}
+        >
             {NAV_ITEMS.map(item => (
                 <button
                     key={item.id}

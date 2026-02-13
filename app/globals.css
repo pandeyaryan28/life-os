@@ -76,21 +76,21 @@ body {
 
 /* Mobile Bottom Navigation */
 .bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
   height: 64px;
-  background: linear-gradient(180deg, rgba(10, 10, 10, 0.95) 0%, rgba(10, 10, 10, 0.98) 100%);
+  background: rgba(10, 10, 10, 0.98) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--system-border);
-  display: flex;
+  border-top: 2px solid var(--system-blue) !important;
+  display: flex !important;
   justify-content: space-around;
   align-items: center;
   padding: 0 8px;
-  z-index: 1000;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 9999 !important;
+  box-shadow: 0 -4px 20px rgba(0, 170, 255, 0.3) !important;
 }
 
 .bottom-nav-item {
