@@ -1,3 +1,5 @@
+'use client';
+'use client';
 import React, { useState, lazy, Suspense } from 'react';
 import { useGameEngine } from '../hooks/useGameEngine';
 import { useSubscription } from '../context/SubscriptionContext';

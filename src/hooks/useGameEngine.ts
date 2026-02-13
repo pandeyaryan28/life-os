@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect, useCallback } from 'react';
 import type { GameState, Stats, Quest, Notification, Expense, Goal, ManualAdjustment, PlayerProfile, LogEntry } from '../types';
 import { INITIAL_STATE } from '../data/initialState';
