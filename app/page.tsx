@@ -3,6 +3,7 @@
 import { Suspense } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { SubscriptionProvider } from '@/context/SubscriptionContext';
+import { MobileNavProvider } from '@/context/MobileNavContext';
 import { useGameEngine } from '@/hooks/useGameEngine';
 import Script from 'next/script';
 import dynamic from 'next/dynamic';
@@ -62,7 +63,9 @@ function ProvidersWrapper({ children }: { children: React.ReactNode }) {
     return (
         <AuthProvider>
             <SubscriptionProvider>
-                {children}
+                <MobileNavProvider>
+                    {children}
+                </MobileNavProvider>
             </SubscriptionProvider>
         </AuthProvider>
     );
