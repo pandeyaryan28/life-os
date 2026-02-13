@@ -1,5 +1,4 @@
 'use client';
-'use client';
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Shield, Info, Mail, Globe, ArrowRight, UserCircle2 } from 'lucide-react';
