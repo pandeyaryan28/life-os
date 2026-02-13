@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"], display: 'swap' });
 export const metadata: Metadata = {
     metadataBase: new URL('https://lifeosplus.com'), // Replace with your actual domain
     title: {
-        default: "Life OS | Gamified Life Management System",
+        default: "Life OS | Gamify your Life",
         template: "%s | Life OS"
     },
     description: "Transform your life into a RPG. Track habits, manage finances, and achieve goals with a powerful gamified dashboard.",

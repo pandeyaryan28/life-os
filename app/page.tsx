@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { SubscriptionProvider } from '@/context/SubscriptionContext';
 import { useGameEngine } from '@/hooks/useGameEngine';
@@ -58,14 +58,22 @@ function AppContent() {
     );
 }
 
+function ProvidersWrapper({ children }: { children: React.ReactNode }) {
+    return (
+        <AuthProvider>
+            <SubscriptionProvider>
+                {children}
+            </SubscriptionProvider>
+        </AuthProvider>
+    );
+}
+
 export default function Home() {
     return (
         <>
-            <AuthProvider>
-                <SubscriptionProvider>
-                    <AppContent />
-                </SubscriptionProvider>
-            </AuthProvider>
+            <ProvidersWrapper>
+                <AppContent />
+            </ProvidersWrapper>
 
             {/* Deferred Scripts for Performance */}
             <Script
@@ -87,3 +95,4 @@ export default function Home() {
         </>
     );
 }
+
