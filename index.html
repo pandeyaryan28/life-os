@@ -1,60 +1,90 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/icon-192.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0a0b" />
-    <title>Life OS</title>
 
-    <!-- Resource Hints -->
-    <link rel="preconnect" href="https://firebase.googleapis.com">
-    <link rel="preconnect" href="https://apis.google.com">
-    <link rel="dns-prefetch" href="https://firebaseinstallations.googleapis.com">
-    <link rel="dns-prefetch" href="https://life-os-1e607.firebaseapp.com">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/icon-192.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0b" />
+  <title>Life OS</title>
 
-    <!-- Critical CSS Inlined -->
-    <style>
-      :root {
-        --system-blue: #00aaff;
-        --system-dark: #0a0a0a;
-        --system-panel: #111111;
-        --system-border: #333333;
-        --system-text: #e0e0e0;
-        --system-gold: #ffd700;
-        --system-danger: #ff4444;
-      }
-      body {
-        background-color: var(--system-dark);
-        color: var(--system-text);
-        font-family: 'Inter', sans-serif;
-        overflow: hidden;
-        margin: 0;
-      }
-      /* Clean skeleton animation base */
-      .skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        will-change: transform;
-        animation: shimmer 2s infinite;
-      }
-      @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-      }
-    </style>
+  <!-- Resource Hints -->
+  <link rel="preconnect" href="https://firebase.googleapis.com">
+  <link rel="preconnect" href="https://apis.google.com">
+  <link rel="preconnect" href="https://checkout.razorpay.com">
+  <link rel="dns-prefetch" href="https://firebaseinstallations.googleapis.com">
+  <link rel="dns-prefetch" href="https://life-os-1e607.firebaseapp.com">
+  <link rel="dns-prefetch" href="https://checkout.razorpay.com">
 
-    <script defer src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script defer src="https://www.googletagmanager.com/gtag/js?id=G-QG09YN7SDV"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-QG09YN7SDV');
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <!-- Critical CSS Inlined -->
+  <style>
+    :root {
+      --system-blue: #00aaff;
+      --system-dark: #0a0a0a;
+      --system-panel: #111111;
+      --system-border: #333333;
+      --system-text: #e0e0e0;
+      --system-gold: #ffd700;
+      --system-danger: #ff4444;
+    }
+
+    body {
+      background-color: var(--system-dark);
+      color: var(--system-text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      /* Fix scroll issue but allow vertical */
+      margin: 0;
+    }
+
+    /* Clean skeleton animation base */
+    .skeleton {
+      background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+      /* Dark mode adapted */
+      background-size: 200% 100%;
+      will-change: background-position;
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0;
+      }
+
+      100% {
+        background-position: 200% 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Deferred Scripts for Performance -->
+  <script>
+    // Defer GTM load until user interaction or after a delay
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-QG09YN7SDV');
+
+    // Load external scripts after page load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const gtm = document.createElement('script');
+        gtm.src = "https://www.googletagmanager.com/gtag/js?id=G-QG09YN7SDV";
+        gtm.async = true;
+        document.body.appendChild(gtm);
+
+        const rzp = document.createElement('script');
+        rzp.src = "https://checkout.razorpay.com/v1/checkout.js";
+        rzp.async = true;
+        document.body.appendChild(rzp);
+      }, 2500); // 2.5s delay to prioritize LCP
+    });
+  </script>
+</body>
+
 </html>
