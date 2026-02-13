@@ -1,8 +1,9 @@
 'use client';
 
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { SubscriptionProvider } from '@/context/SubscriptionContext';
+import { MobileNavProvider } from '@/context/MobileNavContext';
 import { useGameEngine } from '@/hooks/useGameEngine';
 import Script from 'next/script';
 import dynamic from 'next/dynamic';
@@ -58,14 +59,24 @@ function AppContent() {
     );
 }
 
+function ProvidersWrapper({ children }: { children: React.ReactNode }) {
+    return (
+        <AuthProvider>
+            <SubscriptionProvider>
+                <MobileNavProvider>
+                    {children}
+                </MobileNavProvider>
+            </SubscriptionProvider>
+        </AuthProvider>
+    );
+}
+
 export default function Home() {
     return (
         <>
-            <AuthProvider>
-                <SubscriptionProvider>
-                    <AppContent />
-                </SubscriptionProvider>
-            </AuthProvider>
+            <ProvidersWrapper>
+                <AppContent />
+            </ProvidersWrapper>
 
             {/* Deferred Scripts for Performance */}
             <Script
@@ -87,3 +98,4 @@ export default function Home() {
         </>
     );
 }
+
