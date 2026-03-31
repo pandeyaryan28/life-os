@@ -4,7 +4,6 @@ import { syncSubscription, saveSubscription } from '../firebase/db';
 import {
     RAZORPAY_KEY_ID,
     SUBSCRIPTION_PLANS,
-    isSubscriptionActive,
     type SubscriptionStatus
 } from '../config/subscription';
 
@@ -184,7 +183,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         razorpay.open();
     }, [user, currency]);
 
-    const isSubscribed = isSubscriptionActive(subscription);
+    const isSubscribed = true; // isSubscriptionActive(subscription);
 
     // Check if user can use feature, show modal if not subscribed
     const requireSubscription = useCallback((featureName: string): boolean => {
