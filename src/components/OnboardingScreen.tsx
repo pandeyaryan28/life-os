@@ -1,3 +1,5 @@
+'use client';
+'use client';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Globe, ArrowRight, Shield } from 'lucide-react';
