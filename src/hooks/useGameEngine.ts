@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect, useCallback } from 'react';
 import type { GameState, Stats, Quest, Notification, Expense, Goal, ManualAdjustment, PlayerProfile, LogEntry } from '../types';
 import { INITIAL_STATE } from '../data/initialState';
@@ -9,18 +10,18 @@ const OLD_STORAGE_KEY = 'life-os-save-v1.3.1';
 
 export const useGameEngine = () => {
     const { user } = useAuth();
-    const [gameState, setGameState] = useState<GameState>({ ...INITIAL_STATE, version: '1.8.3' });
+    const [gameState, setGameState] = useState<GameState>({ ...INITIAL_STATE, version: '1.5.1' });
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isMigrationPending, setIsMigrationPending] = useState(false);
     const [isSyncing, setIsSyncing] = useState(true);
 
-    // PERF v1.8.3: Optimized sync safety timeout - reduced for faster "ready" state on mobile
+    // Sync safety timeout
     useEffect(() => {
         if (!isSyncing) return;
         const timer = setTimeout(() => {
-            console.warn('⚡ Neural Sync: Timeout triggered. Forcing interface...');
+            console.log('Sync timeout reached, forcing entry...');
             setIsSyncing(false);
-        }, 2000);
+        }, 5000);
         return () => clearTimeout(timer);
     }, [isSyncing]);
 
@@ -38,104 +39,113 @@ export const useGameEngine = () => {
             }
         };
 
-        if ('requestIdleCallback' in window) {
-            (window as any).requestIdleCallback(() => void checkMigration());
-        } else {
-            void checkMigration();
-        }
+        checkMigration();
     }, [user]);
 
     // Firestore Integration
     useEffect(() => {
         if (!user) return;
 
-        // Initialize user profile if new
-        dbService.initializeUserProfile(user.uid, INITIAL_STATE.player);
+        let unsubs: (() => void)[] = [];
 
-        /**
-         * PERF v1.8.3: Isolated Listeners
-         * Grouping sync calls and ensuring they don't block initial rendering.
-         */
-        const unsubs: (() => void)[] = [];
+        const setupSync = async () => {
+            try {
+                // Initialize user profile if new
+                await dbService.initializeUserProfile(user.uid, INITIAL_STATE.player);
 
-        const startSync = () => {
-            // Sync Profile (WITHOUT credits - credits in separate wallet)
-            unsubs.push(dbService.syncDocument<Omit<PlayerProfile, 'credits' | 'stats'>>(user.uid, "profile", "data", (profile) => {
-                if (profile) {
-                    setGameState(prev => ({
-                        ...prev,
-                        player: {
-                            ...prev.player,
-                            ...profile,
-                            credits: prev.player.credits,
-                            stats: prev.player.stats
-                        }
-                    }));
-                }
+                // Sync Profile (WITHOUT credits - credits in separate wallet)
+                const u1 = await dbService.syncDocument<Omit<PlayerProfile, 'credits' | 'stats'>>(user.uid, "profile", "data", (profile) => {
+                    if (profile) {
+                        setGameState(prev => ({
+                            ...prev,
+                            player: {
+                                ...prev.player,
+                                ...profile,
+                                // Preserve credits and stats from current state
+                                credits: prev.player.credits,
+                                stats: prev.player.stats
+                            }
+                        }));
+                    }
+                    setIsSyncing(false);
+                });
+                unsubs.push(u1);
+
+                // Sync Stats (separate document)
+                const u2 = await dbService.syncDocument<Stats>(user.uid, "stats", "current", (stats) => {
+                    if (stats) {
+                        setGameState(prev => ({ ...prev, player: { ...prev.player, stats } }));
+                    }
+                });
+                unsubs.push(u2);
+
+                // Sync Wallet/Credits (NEW - separate document)
+                const u3 = await dbService.syncDocument<{ credits: number }>(user.uid, "economy", "wallet", (wallet) => {
+                    if (wallet) {
+                        console.log('💰 Wallet Sync:', wallet.credits);
+                        setGameState(prev => ({ ...prev, player: { ...prev.player, credits: wallet.credits } }));
+                    }
+                });
+                unsubs.push(u3);
+
+                // Sync Quests
+                const u4 = await dbService.syncCollection<Quest>(user.uid, "quests", (quests) => {
+                    setGameState(prev => ({ ...prev, quests }));
+                });
+                unsubs.push(u4);
+
+                // Sync Goals
+                const u5 = await dbService.syncCollection<Goal>(user.uid, "goals", (goals) => {
+                    setGameState(prev => ({ ...prev, goals }));
+                });
+                unsubs.push(u5);
+
+                // Sync Expenses (filtered to exclude wallet document)
+                const u6 = await dbService.syncCollection<Expense>(user.uid, "economy", (allDocs) => {
+                    // Filter out the wallet document
+                    const expenses = allDocs.filter(doc => doc.id !== 'wallet');
+                    setGameState(prev => ({ ...prev, expenses: expenses as Expense[] }));
+                });
+                unsubs.push(u6);
+
+                // Sync Ledger
+                const u7 = await dbService.syncCollection<Expense>(user.uid, "ledger", (expenseHistory) => {
+                    // Filter to only include actual expenses (must have an amount or valid type)
+                    const validExpenses = expenseHistory.filter(item =>
+                        (item as any).amount !== undefined ||
+                        (item as any).type === 'EXPENSE' ||
+                        (item as any).type === 'BILL_PAYMENT' ||
+                        (item as any).type === 'ONE_TIME' ||
+                        (item as any).type === 'RECURRING'
+                    );
+                    setGameState(prev => ({ ...prev, expenseHistory: validExpenses }));
+                });
+                unsubs.push(u7);
+
+                // Sync Settings
+                const u8 = await dbService.syncDocument<GameState['settings']>(user.uid, "system", "settings", (settings) => {
+                    if (settings) {
+                        setGameState(prev => ({ ...prev, settings: { ...prev.settings, ...settings } }));
+                    }
+                });
+                unsubs.push(u8);
+
+                // Sync Adjustments (Penalties)
+                const u9 = await dbService.syncCollection<ManualAdjustment>(user.uid, "adjustments", (manualAdjustments) => {
+                    setGameState(prev => ({ ...prev, manualAdjustments }));
+                });
+                unsubs.push(u9);
+
+            } catch (error) {
+                console.error("Failed to setup game sync:", error);
                 setIsSyncing(false);
-            }));
-
-            // Sync Stats (separate document)
-            unsubs.push(dbService.syncDocument<Stats>(user.uid, "stats", "current", (stats) => {
-                if (stats) {
-                    setGameState(prev => ({ ...prev, player: { ...prev.player, stats } }));
-                }
-            }));
-
-            // Sync Wallet/Credits (NEW - separate document)
-            unsubs.push(dbService.syncDocument<{ credits: number }>(user.uid, "economy", "wallet", (wallet) => {
-                if (wallet) {
-                    setGameState(prev => ({ ...prev, player: { ...prev.player, credits: wallet.credits } }));
-                }
-            }));
-
-            // Sync Quests
-            unsubs.push(dbService.syncCollection<Quest>(user.uid, "quests", (quests) => {
-                setGameState(prev => ({ ...prev, quests }));
-            }));
-
-            // Sync Goals
-            unsubs.push(dbService.syncCollection<Goal>(user.uid, "goals", (goals) => {
-                setGameState(prev => ({ ...prev, goals }));
-            }));
-
-            // Sync Expenses (filtered to exclude wallet document)
-            unsubs.push(dbService.syncCollection<Expense>(user.uid, "economy", (allDocs) => {
-                const expenses = allDocs.filter(doc => doc.id !== 'wallet');
-                setGameState(prev => ({ ...prev, expenses: expenses as Expense[] }));
-            }));
-
-            // Sync Ledger
-            unsubs.push(dbService.syncCollection<Expense>(user.uid, "ledger", (expenseHistory) => {
-                const validExpenses = expenseHistory.filter(item =>
-                    (item as any).amount !== undefined ||
-                    (item as any).type === 'EXPENSE' ||
-                    (item as any).type === 'BILL_PAYMENT' ||
-                    (item as any).type === 'ONE_TIME' ||
-                    (item as any).type === 'RECURRING'
-                );
-                setGameState(prev => ({ ...prev, expenseHistory: validExpenses }));
-            }));
-
-            // Sync Settings
-            unsubs.push(dbService.syncDocument<GameState['settings']>(user.uid, "system", "settings", (settings) => {
-                if (settings) {
-                    setGameState(prev => ({ ...prev, settings: { ...prev.settings, ...settings } }));
-                }
-            }));
-
-            // Sync Adjustments (Penalties)
-            unsubs.push(dbService.syncCollection<ManualAdjustment>(user.uid, "adjustments", (manualAdjustments) => {
-                setGameState(prev => ({ ...prev, manualAdjustments }));
-            }));
+            }
         };
 
-        // Defer syncing slightly to allow the app shell to render first
-        const syncTimeout = setTimeout(startSync, 200);
+        setupSync();
 
         return () => {
-            clearTimeout(syncTimeout);
-            unsubs.forEach(unsub => unsub());
+            unsubs.forEach(u => u());
         };
     }, [user]);
 
@@ -181,7 +191,7 @@ export const useGameEngine = () => {
 
     // Delete Old Persistence Effect
 
-    // System Time Engine (Daily Resets & Recurring Expenses) - Optimized reactivity for v1.8.3
+    // System Time Engine (Daily Resets & Recurring Expenses)
     useEffect(() => {
         if (!user || isSyncing) return;
 
@@ -189,16 +199,22 @@ export const useGameEngine = () => {
             const now = new Date();
             const lastLoginDate = new Date(gameState.player.lastLogin);
 
+            // Local day comparison
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
             const lastLoginDay = new Date(lastLoginDate.getFullYear(), lastLoginDate.getMonth(), lastLoginDate.getDate()).getTime();
 
             if (today > lastLoginDay) {
+                // New day detected
                 const batchUpdates: Promise<any>[] = [];
                 let anyDailyMissed = false;
 
+                // Reset Daily Quests
                 gameState.quests.forEach(q => {
                     if (q.type === 'DAILY') {
-                        if (q.status === 'ACTIVE') anyDailyMissed = true;
+                        if (q.status === 'ACTIVE') {
+                            anyDailyMissed = true;
+                        }
+
                         const wasCompleted = q.status === 'COMPLETED';
                         const newStreak = wasCompleted ? (q.streak || 0) : 0;
 
@@ -211,6 +227,7 @@ export const useGameEngine = () => {
                     }
                 });
 
+                // Update Profile Last Login and Streak
                 const { stats: _, ...pLat } = gameState.player;
                 const newPlayerStreak = anyDailyMissed ? 0 : gameState.player.streak;
 
@@ -222,9 +239,15 @@ export const useGameEngine = () => {
                 }));
 
                 await Promise.all(batchUpdates);
+
+                if (anyDailyMissed) {
+                    addLog('System Calibration: Streak reset due to missed objectives.', 'WARNING');
+                }
+                addLog('Neural Synchronization: Daily cycles recalibrated.', 'SYSTEM');
                 addNotification('NEW CYCLE DETECTED', 'INFO');
             }
 
+            // Recurring Expenses Logic
             processRecurringExpenses();
         };
 
@@ -233,29 +256,35 @@ export const useGameEngine = () => {
             const batchUpdates: Promise<any>[] = [];
 
             for (const exp of gameState.expenses) {
-                if (exp.type === 'RECURRING' && exp.frequency && !exp.pendingPayment) {
+                if (exp.type === 'RECURRING' && exp.frequency) {
                     const lastProcessed = exp.lastProcessed ? new Date(exp.lastProcessed) : new Date(exp.timestamp);
                     let shouldProcess = false;
 
-                    const diffHours = (now.getTime() - lastProcessed.getTime()) / (1000 * 60 * 60);
-                    if (exp.frequency === 'DAILY') shouldProcess = diffHours >= 24;
-                    else if (exp.frequency === 'WEEKLY') shouldProcess = diffHours >= 168; // 7 days
-                    else if (exp.frequency === 'MONTHLY') shouldProcess = now.getUTCMonth() !== lastProcessed.getUTCMonth();
+                    if (exp.frequency === 'DAILY') {
+                        shouldProcess = now.getTime() - lastProcessed.getTime() >= 24 * 60 * 60 * 1000;
+                    } else if (exp.frequency === 'WEEKLY') {
+                        shouldProcess = now.getTime() - lastProcessed.getTime() >= 7 * 24 * 60 * 60 * 1000;
+                    } else if (exp.frequency === 'MONTHLY') {
+                        shouldProcess = now.getUTCMonth() !== lastProcessed.getUTCMonth() || now.getUTCFullYear() !== lastProcessed.getUTCFullYear();
+                    }
 
-                    if (shouldProcess) {
+                    if (shouldProcess && !exp.pendingPayment) {
+                        // Only mark as pending. Do NOT deduct automatically.
                         batchUpdates.push(dbService.upsertDocument(user.uid, "economy", { ...exp, pendingPayment: true }));
                         addNotification(`BILL DUE: ${exp.name}`, 'WARNING');
                     }
                 }
             }
-            if (batchUpdates.length > 0) await Promise.all(batchUpdates);
+
+            if (batchUpdates.length > 0) {
+                await Promise.all(batchUpdates);
+            }
         };
 
-        // Run every 5 minutes to save mobile CPU
-        const timer = setInterval(checkSystemResets, 300000);
+        const timer = setInterval(checkSystemResets, 60000);
         checkSystemResets();
         return () => clearInterval(timer);
-    }, [user, isSyncing]); // Reduced dependencies
+    }, [user, isSyncing, gameState.player, gameState.quests, gameState.expenses]);
 
 
 

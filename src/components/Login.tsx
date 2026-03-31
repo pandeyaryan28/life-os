@@ -1,7 +1,9 @@
+'use client';
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Shield, Info, Mail, Globe, ArrowRight, UserCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getFirebaseAuth } from '../firebase/config';
 
 interface LoginProps {
     initialMode?: 'REGISTER';
@@ -22,9 +24,25 @@ export const Login: React.FC<LoginProps> = ({ initialMode }) => {
         try {
             await signInWithGoogle();
         } catch (err: any) {
+            // Check if user definitely signed in despite error
+            const auth = getFirebaseAuth();
+            if (auth?.currentUser) return;
+
+            // Ignore widely known mobile popup cancellations/closings that are harmless
+            if (err.code === 'auth/popup-closed-by-user' ||
+                err.code === 'auth/cancelled-popup-request' ||
+                err.message?.includes('closed by user')) {
+                return;
+            }
+
+            console.error("Google Auth Error:", err);
             setError(err.message || 'Google synchronization failed.');
         } finally {
-            setLoading(false);
+            // If logged in, keep loading state until unmount/redirect
+            const auth = getFirebaseAuth();
+            if (!auth?.currentUser) {
+                setLoading(false);
+            }
         }
     };
 

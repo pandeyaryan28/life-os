@@ -1,0 +1,3 @@
+module.exports=[34666,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(96454);a.n(d("[project]/Code Playground/Life OS Plus/life-os/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},31185,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(96454);a.n(d("[project]/Code Playground/Life OS Plus/life-os/node_modules/next/dist/client/components/builtin/global-error.js"))},43383,a=>{"use strict";a.i(34666);var b=a.i(31185);a.n(b)}];
+
+//# sourceMappingURL=06340_next_dist_client_components_builtin_global-error_741f31ee.js.map
